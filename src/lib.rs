@@ -1,8 +1,11 @@
+#[macro_use] extern crate maplit;
+
 use std::slice::Iter;
 use std::{io, fs};
 use std::io::{Lines, BufReader, BufRead};
 use std::fs::File;
 use std::collections::{BTreeMap, BTreeSet};
+use std::collections::btree_map::Keys;
 
 pub fn all_lines(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
@@ -77,6 +80,49 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
     }
 }
 
+#[derive(Clone,Debug,Eq,Ord,PartialOrd,PartialEq)]
+pub struct StringGraph {
+    node2nodes: BTreeMap<String,BTreeSet<String>>
+}
+
+impl StringGraph {
+    pub fn new() -> Self {StringGraph {node2nodes: BTreeMap::new()}}
+
+    pub fn add_if_absent(&mut self, name: &str) {
+        if !self.node2nodes.contains_key(name) {
+            self.node2nodes.insert(name.to_string(), BTreeSet::new());
+        }
+    }
+
+    pub fn add_edge(&mut self, start: &str, end: &str) {
+        self.add_if_absent(start);
+        self.add_if_absent(end);
+        self.node2nodes.get_mut(start).unwrap().insert(end.to_string());
+    }
+
+    pub fn all_node_names(&self) -> Keys<String,BTreeSet<String>> {
+        self.node2nodes.keys()
+    }
+
+    pub fn all_successors_of(&self, name: &str) -> BTreeSet<String> {
+        let mut visited = BTreeSet::new();
+        if self.node2nodes.contains_key(name) {
+            let mut open_list: Vec<String> = self.node2nodes.get(name).unwrap().iter()
+                .map(|s| s.clone())
+                .collect();
+            while open_list.len() > 0 {
+                let candidate = open_list.pop().unwrap();
+                if !visited.contains(candidate.as_str()) {
+                    self.node2nodes.get(candidate.as_str()).unwrap().iter()
+                        .for_each(|s| open_list.push(s.clone()));
+                    visited.insert(candidate);
+                }
+            }
+        }
+        visited
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -120,5 +166,18 @@ mod tests {
 
         let obj = iter.next().unwrap();
         assert_eq!(*obj, to_set(vec!["b"]));
+    }
+
+    #[test]
+    pub fn test_string_graph() {
+        let mut sg = StringGraph::new();
+        [("a", "b"), ("b", "c"), ("c", "d"), ("b", "e")].iter()
+            .for_each(|(a, b)| sg.add_edge(*a, *b));
+        [("a", btreeset!("b", "c", "d", "e")), ("b", btreeset!("c", "d", "e")),
+            ("c", btreeset!("d")), ("d", btreeset!()), ("e", btreeset!())].iter()
+            .for_each(|(k, s)| {
+            assert_eq!(sg.all_successors_of(k),
+                       s.iter().map(|s| s.to_string()).collect::<BTreeSet<String>>());
+        });
     }
 }
