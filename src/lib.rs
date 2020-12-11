@@ -77,10 +77,63 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
     }
 }
 
+#[derive(Debug,Clone,Copy,Eq,PartialEq)]
+pub enum Dir {
+    N, Ne, E, Se, S, Sw, W, Nw
+}
+
+impl Dir {
+    pub fn neighbor(&self, col: usize, row: usize) -> (isize,isize) {
+        let (d_col, d_row) = match self {
+            Dir::N  => ( 0, -1),
+            Dir::Ne => (-1, -1),
+            Dir::E  => (-1,  0),
+            Dir::Se => (-1,  1),
+            Dir::S  => ( 0,  1),
+            Dir::Sw => ( 1,  1),
+            Dir::W  => ( 1,  0),
+            Dir::Nw => ( 1, -1)
+        };
+        (col as isize + d_col, row as isize + d_row)
+    }
+}
+
+pub struct DirIter {
+    d: Option<Dir>
+}
+
+impl DirIter {
+    pub fn new() -> Self {DirIter {d: Some(Dir::N)}}
+}
+
+impl Iterator for DirIter {
+    type Item = Dir;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.d {
+            None => None,
+            Some(d) => {
+                self.d = match d {
+                    Dir::N  => Some(Dir::Ne),
+                    Dir::Ne => Some(Dir::E),
+                    Dir::E  => Some(Dir::Se),
+                    Dir::Se => Some(Dir::S),
+                    Dir::S  => Some(Dir::Sw),
+                    Dir::Sw => Some(Dir::W),
+                    Dir::W  => Some(Dir::Nw),
+                    Dir::Nw => None
+                };
+                Some(d)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::iter::FromIterator;
+    use Dir::*;
 
     #[test]
     fn test_nums() {
@@ -120,5 +173,12 @@ mod tests {
 
         let obj = iter.next().unwrap();
         assert_eq!(*obj, to_set(vec!["b"]));
+    }
+
+    #[test]
+    fn test_dir() {
+        assert_eq!(DirIter::new().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
+        assert_eq!(DirIter::new().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
+                   vec![(4, 3), (3, 3), (3, 4), (3, 5), (4, 5), (5, 5), (5, 4), (5, 3)]);
     }
 }
