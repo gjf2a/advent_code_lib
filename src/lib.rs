@@ -85,9 +85,46 @@ pub struct Position {
 
 impl Position {
     pub fn update(&mut self, d: Dir) {
-        let (nc, nr) = d.neighbor(self.col as usize, self.row as usize);
+        let (nc, nr) = d.neighbor(self.col, self.row);
         self.col = nc;
         self.row = nr;
+    }
+
+    pub fn updated(&self, d: Dir) -> Self {
+        let (nc, nr) = d.neighbor(self.col, self.row);
+        Position {col: nc, row: nr}
+    }
+}
+
+pub struct RowMajorPositionIterator {
+    width: usize, height: usize, col: usize, row: usize
+}
+
+impl RowMajorPositionIterator {
+    pub fn new(width: usize, height: usize) -> Self {
+        RowMajorPositionIterator {width, height, col: 0, row: 0}
+    }
+
+    pub fn in_bounds(&self) -> bool {
+        self.col < self.width && self.row < self.height
+    }
+}
+
+impl Iterator for RowMajorPositionIterator {
+    type Item = Position;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.in_bounds() {
+            let result = Some(Position {col: self.col as isize, row: self.row as isize});
+            self.col += 1;
+            if self.col == self.width {
+                self.col = 0;
+                self.row += 1;
+            }
+            result
+        } else {
+            None
+        }
     }
 }
 
@@ -97,7 +134,7 @@ pub enum Dir {
 }
 
 impl Dir {
-    pub fn neighbor(&self, col: usize, row: usize) -> (isize,isize) {
+    pub fn neighbor(&self, col: isize, row: isize) -> (isize,isize) {
         let (d_col, d_row) = match self {
             Dir::N  => ( 0, -1),
             Dir::Ne => (-1, -1),
@@ -108,7 +145,7 @@ impl Dir {
             Dir::W  => ( 1,  0),
             Dir::Nw => ( 1, -1)
         };
-        (col as isize + d_col, row as isize + d_row)
+        (col + d_col, row + d_row)
     }
 }
 
@@ -197,5 +234,13 @@ mod tests {
         let mut p = Position {col: 3, row: 2};
         p.update(Dir::Nw);
         assert_eq!(p, Position {col: 4, row: 1});
+        p.update(Dir::Se);
+        assert_eq!(p, Position {col: 3, row: 2});
+        assert_eq!(p.updated(Dir::Ne), Position {col: 2, row: 1});
+
+        let ps: Vec<Position> = RowMajorPositionIterator::new(2, 3).collect();
+        let targets = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)];
+        assert_eq!(ps.len(), targets.len());
+        assert!((0..targets.len()).all(|i| Position {col: targets[i].0, row: targets[i].1} == ps[i]));
     }
 }
