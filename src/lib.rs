@@ -77,6 +77,20 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
     }
 }
 
+#[derive(Debug,Copy,Clone,Eq,PartialEq)]
+pub struct Position {
+    pub col: isize,
+    pub row: isize
+}
+
+impl Position {
+    pub fn update(&mut self, d: Dir) {
+        let (nc, nr) = d.neighbor(self.col as usize, self.row as usize);
+        self.col = nc;
+        self.row = nr;
+    }
+}
+
 #[derive(Debug,Clone,Copy,Eq,PartialEq)]
 pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
@@ -180,5 +194,8 @@ mod tests {
         assert_eq!(DirIter::new().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
         assert_eq!(DirIter::new().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
                    vec![(4, 3), (3, 3), (3, 4), (3, 5), (4, 5), (5, 5), (5, 4), (5, 3)]);
+        let mut p = Position {col: 3, row: 2};
+        p.update(Dir::Nw);
+        assert_eq!(p, Position {col: 4, row: 1});
     }
 }
