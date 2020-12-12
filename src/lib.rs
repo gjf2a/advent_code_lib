@@ -135,7 +135,12 @@ pub enum Dir {
 
 impl Dir {
     pub fn neighbor(&self, col: isize, row: isize) -> (isize,isize) {
-        let (d_col, d_row) = match self {
+        let (d_col, d_row) = self.offset();
+        (col + d_col, row + d_row)
+    }
+
+    pub fn offset(&self) -> (isize,isize) {
+        match self {
             Dir::N  => ( 0, -1),
             Dir::Ne => (-1, -1),
             Dir::E  => (-1,  0),
@@ -144,8 +149,7 @@ impl Dir {
             Dir::Sw => ( 1,  1),
             Dir::W  => ( 1,  0),
             Dir::Nw => ( 1, -1)
-        };
-        (col + d_col, row + d_row)
+        }
     }
 }
 
