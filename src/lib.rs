@@ -172,6 +172,19 @@ impl Dir {
         (col + d_col, row + d_row)
     }
 
+    pub fn right(&self) -> Dir {
+        match self {
+            Dir::N => Dir::Ne,
+            Dir::Ne => Dir::E,
+            Dir::E => Dir::Se,
+            Dir::Se => Dir::S,
+            Dir::S => Dir::Sw,
+            Dir::Sw => Dir::W,
+            Dir::W => Dir::Nw,
+            Dir::Nw => Dir::N
+        }
+    }
+
     pub fn offset(&self) -> (isize,isize) {
         match self {
             Dir::N  => ( 0, -1),
@@ -187,6 +200,19 @@ impl Dir {
 
     pub fn position_offset(&self) -> Position {
         Position::from(self.offset())
+    }
+
+    pub fn rotated_degrees(&self, degrees: isize) -> Dir {
+        let mut degrees = degrees;
+        while degrees < 0 {degrees += 360;}
+        let degrees = degrees % 360;
+        let mut steps = degrees / 45;
+        let mut result = *self;
+        while steps > 0 {
+            steps -= 1;
+            result = result.right();
+        }
+        result
     }
 }
 
@@ -206,14 +232,8 @@ impl Iterator for DirIter {
             None => None,
             Some(d) => {
                 self.d = match d {
-                    Dir::N  => Some(Dir::Ne),
-                    Dir::Ne => Some(Dir::E),
-                    Dir::E  => Some(Dir::Se),
-                    Dir::Se => Some(Dir::S),
-                    Dir::S  => Some(Dir::Sw),
-                    Dir::Sw => Some(Dir::W),
-                    Dir::W  => Some(Dir::Nw),
-                    Dir::Nw => None
+                    Dir::Nw => None,
+                    _ => Some(d.right())
                 };
                 Some(d)
             }
@@ -283,6 +303,12 @@ mod tests {
         let targets = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)];
         assert_eq!(ps.len(), targets.len());
         assert!((0..targets.len()).all(|i| Position {col: targets[i].0, row: targets[i].1} == ps[i]));
+
+        assert_eq!(Dir::N.rotated_degrees(90), Dir::E);
+        assert_eq!(Dir::N.rotated_degrees(180), Dir::S);
+        assert_eq!(Dir::N.rotated_degrees(270), Dir::W);
+        assert_eq!(Dir::N.rotated_degrees(360), Dir::N);
+        assert_eq!(Dir::N.rotated_degrees(-90), Dir::W);
     }
 
     #[test]
