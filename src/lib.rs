@@ -203,10 +203,7 @@ impl Dir {
     }
 
     pub fn rotated_degrees(&self, degrees: isize) -> Dir {
-        let mut degrees = degrees;
-        while degrees < 0 {degrees += 360;}
-        let degrees = degrees % 360;
-        let mut steps = degrees / 45;
+        let mut steps = normalize_degrees(degrees) / 45;
         let mut result = *self;
         while steps > 0 {
             steps -= 1;
@@ -214,6 +211,12 @@ impl Dir {
         }
         result
     }
+}
+
+pub fn normalize_degrees(degrees: isize) -> isize {
+    let mut degrees = degrees;
+    while degrees < 0 {degrees += 360;}
+    degrees % 360
 }
 
 pub struct DirIter {
@@ -309,6 +312,8 @@ mod tests {
         assert_eq!(Dir::N.rotated_degrees(270), Dir::W);
         assert_eq!(Dir::N.rotated_degrees(360), Dir::N);
         assert_eq!(Dir::N.rotated_degrees(-90), Dir::W);
+        assert_eq!(Dir::E.rotated_degrees(180), Dir::W);
+        assert_eq!(Dir::E.rotated_degrees(-180), Dir::W);
     }
 
     #[test]
@@ -322,5 +327,13 @@ mod tests {
 
         p *= 3;
         assert_eq!(Position::from((12, 24)), p);
+    }
+
+    #[test]
+    fn test_normalize_degrees() {
+        assert_eq!(normalize_degrees(90), 90);
+        assert_eq!(normalize_degrees(-90), 270);
+        assert_eq!(normalize_degrees(180), normalize_degrees(-180));
+        assert_eq!(normalize_degrees(360), 0);
     }
 }
