@@ -3,6 +3,7 @@ use std::{io, fs};
 use std::io::{Lines, BufReader, BufRead};
 use std::fs::File;
 use std::collections::{BTreeMap, BTreeSet};
+use std::ops::{Add, Mul};
 
 pub fn all_lines(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
@@ -83,7 +84,27 @@ pub struct Position {
     pub row: isize
 }
 
+impl Add for Position {
+    type Output = Position;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Position {col: self.col + rhs.col, row: self.row + rhs.row}
+    }
+}
+
+impl Mul<isize> for Position {
+    type Output = Position;
+
+    fn mul(self, rhs: isize) -> Self::Output {
+        Position {col: self.col * rhs, row: self.row * rhs}
+    }
+}
+
 impl Position {
+    pub fn from(pair: (isize,isize)) -> Self {
+        Position {col: pair.0, row: pair.1}
+    }
+
     pub fn update(&mut self, d: Dir) {
         let (nc, nr) = d.neighbor(self.col, self.row);
         self.col = nc;
@@ -150,6 +171,10 @@ impl Dir {
             Dir::W  => ( 1,  0),
             Dir::Nw => ( 1, -1)
         }
+    }
+
+    pub fn position_offset(&self) -> Position {
+        Position::from(self.offset())
     }
 }
 
@@ -246,5 +271,12 @@ mod tests {
         let targets = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)];
         assert_eq!(ps.len(), targets.len());
         assert!((0..targets.len()).all(|i| Position {col: targets[i].0, row: targets[i].1} == ps[i]));
+    }
+
+    #[test]
+    fn test_pos_math() {
+        let p = Position::from((2, 3));
+        assert_eq!(Position::from((4, 6)), p * 2);
+        assert_eq!(Position::from((3, 5)), p + Position::from((1, 2)));
     }
 }
