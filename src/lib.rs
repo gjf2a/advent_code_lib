@@ -3,7 +3,7 @@ use std::{io, fs};
 use std::io::{Lines, BufReader, BufRead};
 use std::fs::File;
 use std::collections::{BTreeMap, BTreeSet};
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, AddAssign, MulAssign};
 
 pub fn all_lines(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
@@ -97,6 +97,18 @@ impl Mul<isize> for Position {
 
     fn mul(self, rhs: isize) -> Self::Output {
         Position {col: self.col * rhs, row: self.row * rhs}
+    }
+}
+
+impl AddAssign for Position {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl MulAssign<isize> for Position {
+    fn mul_assign(&mut self, rhs: isize) {
+        *self = *self * rhs;
     }
 }
 
@@ -275,8 +287,14 @@ mod tests {
 
     #[test]
     fn test_pos_math() {
-        let p = Position::from((2, 3));
+        let mut p = Position::from((2, 3));
         assert_eq!(Position::from((4, 6)), p * 2);
         assert_eq!(Position::from((3, 5)), p + Position::from((1, 2)));
+
+        p += Position::from((2, 5));
+        assert_eq!(Position::from((4, 8)), p);
+
+        p *= 3;
+        assert_eq!(Position::from((12, 24)), p);
     }
 }
