@@ -188,13 +188,13 @@ impl Dir {
     pub fn offset(&self) -> (isize,isize) {
         match self {
             Dir::N  => ( 0, -1),
-            Dir::Ne => (-1, -1),
-            Dir::E  => (-1,  0),
-            Dir::Se => (-1,  1),
+            Dir::Ne => ( 1, -1),
+            Dir::E  => ( 1,  0),
+            Dir::Se => ( 1,  1),
             Dir::S  => ( 0,  1),
-            Dir::Sw => ( 1,  1),
-            Dir::W  => ( 1,  0),
-            Dir::Nw => ( 1, -1)
+            Dir::Sw => (-1,  1),
+            Dir::W  => (-1,  0),
+            Dir::Nw => (-1, -1)
         }
     }
 
@@ -291,13 +291,13 @@ mod tests {
     fn test_dir() {
         assert_eq!(DirIter::new().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
         assert_eq!(DirIter::new().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
-                   vec![(4, 3), (3, 3), (3, 4), (3, 5), (4, 5), (5, 5), (5, 4), (5, 3)]);
+                   vec![(4, 3), (5, 3), (5, 4), (5, 5), (4, 5), (3, 5), (3, 4), (3, 3)]);
         let mut p = Position {col: 3, row: 2};
         p.update(Dir::Nw);
-        assert_eq!(p, Position {col: 4, row: 1});
+        assert_eq!(p, Position {col: 2, row: 1});
         p.update(Dir::Se);
         assert_eq!(p, Position {col: 3, row: 2});
-        assert_eq!(p.updated(Dir::Ne), Position {col: 2, row: 1});
+        assert_eq!(p.updated(Dir::Ne), Position {col: 4, row: 1});
 
         let ps: Vec<Position> = RowMajorPositionIterator::new(2, 3).collect();
         let targets = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)];
