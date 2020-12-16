@@ -1,28 +1,28 @@
 use std::slice::Iter;
 use std::{io, fs};
-use std::io::{Lines, BufReader, BufRead};
-use std::fs::File;
+use std::io::BufRead;
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::{Add, Mul, AddAssign, MulAssign};
 
-pub fn all_lines(filename: &str) -> io::Result<Lines<BufReader<File>>> {
-    Ok(io::BufReader::new(fs::File::open(filename)?).lines())
+pub fn all_lines(filename: &str) -> io::Result<impl Iterator<Item=String>> {
+    Ok(io::BufReader::new(fs::File::open(filename)?).lines()
+        .map(|line| line.unwrap()))
 }
 
 pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_processor: F) -> io::Result<()> {
     for line in all_lines(filename)? {
-        line_processor(line?.as_str())?;
+        line_processor(line.as_str())?;
     }
     Ok(())
 }
 
 pub fn file2nums(filename: &str) -> io::Result<Vec<isize>> {
-    Ok(all_lines(filename)?.map(|line| line.unwrap().parse::<isize>().unwrap()).collect())
+    Ok(all_lines(filename)?.map(|line| line.parse::<isize>().unwrap()).collect())
 }
 
 pub fn pass_counter<F: Fn(&str) -> bool>(filename: &str, passes_check: F) -> io::Result<String> {
     Ok(all_lines(filename)?
-        .filter(|line| line.as_ref().map_or(false, |line| passes_check(line.as_str())))
+        .filter(|line| passes_check(line.as_str()))
         .count().to_string())
 }
 
