@@ -1,12 +1,16 @@
 use std::slice::Iter;
 use std::{io, fs};
-use std::io::BufRead;
+use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::{Add, Mul, AddAssign, MulAssign};
+use std::fs::File;
+
+pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
+    Ok(io::BufReader::new(fs::File::open(filename)?).lines())
+}
 
 pub fn all_lines(filename: &str) -> io::Result<impl Iterator<Item=String>> {
-    Ok(io::BufReader::new(fs::File::open(filename)?).lines()
-        .map(|line| line.unwrap()))
+    Ok(all_lines_wrap(filename)?.map(|line| line.unwrap()))
 }
 
 pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_processor: F) -> io::Result<()> {
