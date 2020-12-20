@@ -185,6 +185,18 @@ pub enum ManhattanDir {
     N, E, S, W
 }
 
+impl ManhattanDir {
+    pub fn next(&self, p: Position) -> Position {
+        p + Position::from(
+        match self {
+            ManhattanDir::N => (0, -1),
+            ManhattanDir::E => (1, 0),
+            ManhattanDir::S => (0, 1),
+            ManhattanDir::W => (-1, 0)
+        })
+    }
+}
+
 #[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
 pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
@@ -340,5 +352,13 @@ mod tests {
     fn test_indices_2d() {
         let v: Vec<Vec<(usize,usize)>> = indices_2d_vec(3, 2, |x, y| (x, y));
         assert_eq!(v, vec![vec![(0, 0), (1, 0), (2, 0)], vec![(0, 1), (1, 1), (2, 1)]]);
+    }
+
+    #[test]
+    fn test_manhattan() {
+        let p = Position::new();
+        for (d, (x, y)) in ManhattanDir::into_enum_iter().zip([(0, -1), (1, 0), (0, 1), (-1, 0)].iter()) {
+            assert_eq!(d.next(p), Position::from((*x, *y)));
+        }
     }
 }
