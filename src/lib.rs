@@ -195,6 +195,15 @@ impl ManhattanDir {
             ManhattanDir::W => (-1, 0)
         })
     }
+
+    pub fn inverse(&self) -> ManhattanDir {
+        match self {
+            ManhattanDir::N => ManhattanDir::S,
+            ManhattanDir::S => ManhattanDir::N,
+            ManhattanDir::E => ManhattanDir::W,
+            ManhattanDir::W => ManhattanDir::E
+        }
+    }
 }
 
 #[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
@@ -358,7 +367,10 @@ mod tests {
     fn test_manhattan() {
         let p = Position::new();
         for (d, (x, y)) in ManhattanDir::into_enum_iter().zip([(0, -1), (1, 0), (0, 1), (-1, 0)].iter()) {
-            assert_eq!(d.next(p), Position::from((*x, *y)));
+            let next = d.next(p);
+            assert_eq!(next, Position::from((*x, *y)));
+            let inverse = d.inverse().next(next);
+            assert_eq!(inverse, p);
         }
     }
 }
