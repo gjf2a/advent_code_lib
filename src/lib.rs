@@ -1,11 +1,10 @@
-#[macro_use] extern crate smallvec;
-
 use std::slice::Iter;
 use std::{io, fs};
 use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::{Add, Mul, AddAssign, MulAssign};
 use std::fs::File;
+use enum_iterator::IntoEnumIterator;
 
 pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
@@ -175,7 +174,7 @@ pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) 
         .collect()
 }
 
-#[derive(Debug,Clone,Copy,Eq,PartialEq)]
+#[derive(Debug,Clone,Copy,Eq,PartialEq,IntoEnumIterator)]
 pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
 }
