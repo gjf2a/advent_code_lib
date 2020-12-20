@@ -232,31 +232,6 @@ pub fn normalize_degrees(degrees: isize) -> isize {
     degrees % 360
 }
 
-pub struct DirIter {
-    d: Option<Dir>
-}
-
-impl DirIter {
-    pub fn new() -> Self {DirIter {d: Some(Dir::N)}}
-}
-
-impl Iterator for DirIter {
-    type Item = Dir;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.d {
-            None => None,
-            Some(d) => {
-                self.d = match d {
-                    Dir::Nw => None,
-                    _ => Some(d.right())
-                };
-                Some(d)
-            }
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
