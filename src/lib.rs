@@ -83,7 +83,7 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
     }
 }
 
-#[derive(Debug,Copy,Clone,Eq,PartialEq)]
+#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd)]
 pub struct Position {
     pub col: isize,
     pub row: isize
