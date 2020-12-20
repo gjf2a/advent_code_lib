@@ -1,5 +1,5 @@
 use std::slice::Iter;
-use std::{io, fs};
+use std::{io, fs, mem};
 use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::{Add, Mul, AddAssign, MulAssign};
@@ -132,19 +132,29 @@ impl Position {
         let (nc, nr) = d.neighbor(self.col, self.row);
         Position {col: nc, row: nr}
     }
+
+    pub fn next_in_grid(&self, width: usize, height: usize) -> Option<Position> {
+        let mut result = self.clone();
+        result.col += 1;
+        if result.col == width as isize {
+            result.col = 0;
+            result.row += 1;
+        }
+        if result.row < height as isize {Some(result)} else {None}
+    }
 }
 
 pub struct RowMajorPositionIterator {
-    width: usize, height: usize, col: usize, row: usize
+    width: usize, height: usize, next: Option<Position>
 }
 
 impl RowMajorPositionIterator {
     pub fn new(width: usize, height: usize) -> Self {
-        RowMajorPositionIterator {width, height, col: 0, row: 0}
+        RowMajorPositionIterator {width, height, next: Some(Position {col: 0, row: 0})}
     }
 
     pub fn in_bounds(&self) -> bool {
-        self.col < self.width && self.row < self.height
+        self.next.map_or(false, |n| n.col < self.width as isize && n.row < self.height as isize)
     }
 }
 
@@ -152,17 +162,9 @@ impl Iterator for RowMajorPositionIterator {
     type Item = Position;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.in_bounds() {
-            let result = Some(Position {col: self.col as isize, row: self.row as isize});
-            self.col += 1;
-            if self.col == self.width {
-                self.col = 0;
-                self.row += 1;
-            }
-            result
-        } else {
-            None
-        }
+        let mut future = self.next.and_then(|p| p.next_in_grid(self.width, self.height));
+        mem::swap(&mut future, &mut self.next);
+        future
     }
 }
 
@@ -285,8 +287,8 @@ mod tests {
 
     #[test]
     fn test_dir() {
-        assert_eq!(DirIter::new().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
-        assert_eq!(DirIter::new().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
+        assert_eq!(Dir::into_enum_iter().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
+        assert_eq!(Dir::into_enum_iter().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
                    vec![(4, 3), (5, 3), (5, 4), (5, 5), (4, 5), (3, 5), (3, 4), (3, 3)]);
         let mut p = Position {col: 3, row: 2};
         p.update(Dir::Nw);
