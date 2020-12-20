@@ -1,3 +1,5 @@
+#[macro_use] extern crate smallvec;
+
 use std::slice::Iter;
 use std::{io, fs};
 use std::io::{BufRead, Lines, BufReader};
@@ -164,6 +166,24 @@ impl Iterator for RowMajorPositionIterator {
         }
     }
 }
+
+pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) -> Vec<Vec<T>> {
+    (0..height)
+        .map(|y| (0..width)
+            .map(|x| func(x, y))
+            .collect())
+        .collect()
+}
+
+/* This can't work unless I can specify a size for SmallVec
+// TODO: Figure out how to abstract this!!! It is literally the same code as indices_2d_vec().
+pub fn indices_2d_smallvec<T>(width: usize, height: usize, func: fn(usize,usize)->T) -> SmallVec<SmallVec<T>> {
+    (0..height)
+        .map(|y| (0..width)
+            .map(|x| func(x, y))
+            .collect())
+        .collect()
+}*/
 
 #[derive(Debug,Clone,Copy,Eq,PartialEq)]
 pub enum Dir {
@@ -339,5 +359,11 @@ mod tests {
         assert_eq!(normalize_degrees(-90), 270);
         assert_eq!(normalize_degrees(180), normalize_degrees(-180));
         assert_eq!(normalize_degrees(360), 0);
+    }
+
+    #[test]
+    fn test_indices_2d() {
+        let v: Vec<Vec<(usize,usize)>> = indices_2d_vec(3, 2, |x, y| (x, y));
+        assert_eq!(v, vec![vec![(0, 0), (1, 0), (2, 0)], vec![(0, 1), (1, 1), (2, 1)]]);
     }
 }
