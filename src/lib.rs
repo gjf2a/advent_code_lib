@@ -118,6 +118,10 @@ impl MulAssign<isize> for Position {
 }
 
 impl Position {
+    pub fn new() -> Self {
+        Position::from((0, 0))
+    }
+
     pub fn from(pair: (isize,isize)) -> Self {
         Position {col: pair.0, row: pair.1}
     }
