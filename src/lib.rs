@@ -174,7 +174,12 @@ pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) 
         .collect()
 }
 
-#[derive(Debug,Clone,Copy,Eq,PartialEq,IntoEnumIterator)]
+#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
+pub enum ManhattanDir {
+    N, E, S, W
+}
+
+#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
 pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
 }
