@@ -175,16 +175,6 @@ pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) 
         .collect()
 }
 
-/* This can't work unless I can specify a size for SmallVec
-// TODO: Figure out how to abstract this!!! It is literally the same code as indices_2d_vec().
-pub fn indices_2d_smallvec<T>(width: usize, height: usize, func: fn(usize,usize)->T) -> SmallVec<SmallVec<T>> {
-    (0..height)
-        .map(|y| (0..width)
-            .map(|x| func(x, y))
-            .collect())
-        .collect()
-}*/
-
 #[derive(Debug,Clone,Copy,Eq,PartialEq)]
 pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
