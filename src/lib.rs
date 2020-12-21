@@ -85,8 +85,8 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
 
 #[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd)]
 pub struct Position {
-    pub col: isize,
-    pub row: isize
+    pub row: isize,
+    pub col: isize
 }
 
 impl Add for Position {
@@ -356,6 +356,14 @@ mod tests {
 
         p *= 3;
         assert_eq!(Position::from((12, 24)), p);
+    }
+
+    #[test]
+    fn test_pos_order() {
+        let set: BTreeSet<Position> = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)].iter().map(|p| Position::from(*p)).collect();
+        let seq1: Vec<Position> = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)].iter().map(|p| Position::from(*p)).collect();
+        let seq2: Vec<Position> = set.iter().copied().collect();
+        assert_eq!(seq1, seq2);
     }
 
     #[test]
