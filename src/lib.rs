@@ -204,6 +204,15 @@ impl ManhattanDir {
             ManhattanDir::W => ManhattanDir::E
         }
     }
+
+    pub fn clockwise(&self) -> ManhattanDir {
+        match self {
+            ManhattanDir::N => ManhattanDir::E,
+            ManhattanDir::S => ManhattanDir::W,
+            ManhattanDir::E => ManhattanDir::S,
+            ManhattanDir::W => ManhattanDir::N
+        }
+    }
 }
 
 #[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
@@ -372,5 +381,12 @@ mod tests {
             let inverse = d.inverse().next(next);
             assert_eq!(inverse, p);
         }
+
+        let mut d1 = ManhattanDir::N;
+        for d2 in ManhattanDir::into_enum_iter() {
+            assert_eq!(d1, d2);
+            d1 = d1.clockwise();
+        }
+        assert_eq!(d1, ManhattanDir::N);
     }
 }
