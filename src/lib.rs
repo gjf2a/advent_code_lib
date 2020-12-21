@@ -2,7 +2,7 @@ use std::slice::Iter;
 use std::{io, fs, mem};
 use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet};
-use std::ops::{Add, Mul, AddAssign, MulAssign};
+use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
 use enum_iterator::IntoEnumIterator;
 
@@ -94,6 +94,14 @@ impl Add for Position {
 
     fn add(self, rhs: Self) -> Self::Output {
         Position {col: self.col + rhs.col, row: self.row + rhs.row}
+    }
+}
+
+impl Sub for Position {
+    type Output = Position;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Position {col: self.col - rhs.col, row: self.row - rhs.row}
     }
 }
 
@@ -354,8 +362,11 @@ mod tests {
         p += Position::from((2, 5));
         assert_eq!(Position::from((4, 8)), p);
 
+        let q = p;
         p *= 3;
         assert_eq!(Position::from((12, 24)), p);
+
+        assert_eq!(p - q, Position::from((8, 16)));
     }
 
     #[test]
