@@ -44,29 +44,34 @@ impl <T:Ord> ExNihilo for BTreeSet<T> {
 }
 
 pub struct MultiLineObjects<T: Eq+PartialEq+Clone+ExNihilo> {
-    objects: Vec<T>
+    objects: Vec<T>,
+    line_parser: fn(&mut T, &str)
 }
 
 impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
-    pub fn new() -> Self {
-        MultiLineObjects {objects: vec![T::create()]}
+    pub fn new(line_parser: fn(&mut T, &str)) -> Self {
+        MultiLineObjects {objects: vec![T::create()], line_parser}
     }
 
-    pub fn from_file<P: FnMut(&mut T,&str)>(filename: &str, proc: &mut P) -> io::Result<Self> {
-        let mut result = MultiLineObjects::new();
-        for_each_line(filename, |line| Ok({
-            result.add_line(line, proc);
-        }))?;
-        Ok(result)
+    pub fn from_file(filename: &str, line_parser: fn(&mut T, &str)) -> io::Result<Self> {
+        Ok(MultiLineObjects::from_iterator(all_lines(filename)?, line_parser))
     }
 
-    pub fn add_line<P: FnMut(&mut T,&str)>(&mut self, line: &str, proc: &mut P) {
+    pub fn from_iterator<'a, C: IntoIterator<Item=String>>(iter: C, line_parser: fn(&mut T, &str)) -> Self {
+        let mut result = MultiLineObjects::new(line_parser);
+        for line in iter {
+            result.add_line(line.as_str());
+        }
+        result
+    }
+
+    pub fn add_line(&mut self, line: &str) {
         let line = line.trim();
         if line.len() == 0 {
             self.objects.push(T::create());
         } else {
             let end = self.objects.len() - 1;
-            proc(&mut self.objects[end], line);
+            (self.line_parser)(&mut self.objects[end], line);
         }
     }
 
@@ -308,7 +313,7 @@ mod tests {
     fn test_multiline() {
         let objs: MultiLineObjects<BTreeSet<String>> = MultiLineObjects::from_file(
             "test_2.txt",
-            &mut |set: &mut BTreeSet<String>, line| {set.insert(line.to_owned());}).unwrap();
+            |set: &mut BTreeSet<String>, line: &str| {set.insert(line.to_owned());}).unwrap();
         let mut iter = objs.iter();
 
         let obj = iter.next().unwrap();
