@@ -95,8 +95,8 @@ pub fn make_io_error<T>(message: &str) -> io::Result<T> {
 
 #[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd)]
 pub struct Position {
-    pub row: isize,
-    pub col: isize
+    pub col: isize,
+    pub row: isize
 }
 
 impl Add for Position {
