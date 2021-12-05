@@ -4,6 +4,7 @@ use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
+use std::str::FromStr;
 use enum_iterator::IntoEnumIterator;
 
 pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
@@ -162,6 +163,31 @@ impl Position {
             result.row += 1;
         }
         if result.row < height as isize {Some(result)} else {None}
+    }
+}
+
+impl FromStr for Position {
+    type Err = io::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() >= 2 && s.contains(',') {
+            let mut chars = s.chars();
+            let first = chars.next().unwrap();
+            let last = chars.last().unwrap();
+            if first == '(' && last == ')' {
+                return Position::from_str(&s[1..s.len() - 1])
+            } else {
+                let parts: Vec<_> = s.split(',').collect();
+                if parts.len() == 2 {
+                    return match parts[0].trim().parse::<isize>()
+                        .and_then(|x| parts[1].trim().parse::<isize>().map(|y| (x, y))) {
+                        Ok(pair) => Ok(Position::from(pair)),
+                        Err(e) => make_io_error(e.to_string().as_str())
+                    }
+                }
+            }
+        }
+        make_io_error(format!("\"{}\" is not a Position.", s).as_str())
     }
 }
 
@@ -384,6 +410,20 @@ mod tests {
         let seq1: Vec<Position> = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)].iter().map(|p| Position::from(*p)).collect();
         let seq2: Vec<Position> = set.iter().copied().collect();
         assert_eq!(seq1, seq2);
+    }
+
+    #[test]
+    fn test_position_from_str() {
+        for (x, y) in [(22, 34), (-3, -2)].iter() {
+            for s in [
+                format!("{},{}", x, y),
+                format!("({},{})", x, y),
+                format!("{}, {}", x, y),
+                format!("({}, {})", x, y)].iter() {
+                println!("Testing Position from \"{}\"", s);
+                assert_eq!(Position::from((*x, *y)), s.parse().unwrap());
+            }
+        }
     }
 
     #[test]
