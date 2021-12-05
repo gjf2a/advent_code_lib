@@ -93,10 +93,10 @@ pub fn make_io_error<T>(message: &str) -> io::Result<T> {
     Err(io::Error::new(io::ErrorKind::InvalidData, message))
 }
 
-#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd)]
+#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
 pub struct Position {
-    pub col: isize,
-    pub row: isize
+    pub row: isize,
+    pub col: isize
 }
 
 impl Add for Position {
