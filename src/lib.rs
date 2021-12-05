@@ -88,6 +88,10 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
     }
 }
 
+pub fn make_io_error<T>(message: &str) -> io::Result<T> {
+    Err(io::Error::new(io::ErrorKind::InvalidData, message))
+}
+
 #[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd)]
 pub struct Position {
     pub row: isize,
