@@ -2,6 +2,7 @@ use std::slice::Iter;
 use std::{io, fs, mem};
 use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Debug;
 use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
 use std::str::FromStr;
@@ -13,6 +14,15 @@ pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
 
 pub fn all_lines(filename: &str) -> io::Result<impl Iterator<Item=String>> {
     Ok(all_lines_wrap(filename)?.map(|line| line.unwrap()))
+}
+
+pub fn first_line_only_numbers<N: FromStr>(filename: &str) -> io::Result<Vec<N>>
+    where <N as FromStr>::Err: Debug {
+    Ok(line2numbers(all_lines(filename)?.next().unwrap().as_str()))
+}
+
+pub fn line2numbers<N: FromStr>(line: &str) -> Vec<N> where <N as FromStr>::Err: Debug {
+    line.split(',').map(|s| s.parse().unwrap()).collect::<Vec<N>>()
 }
 
 pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_processor: F) -> io::Result<()> {
@@ -327,6 +337,12 @@ mod tests {
         let nums = file2nums("test_1.txt").unwrap();
         assert_eq!(*nums.iter().min().unwrap(), 111);
         assert_eq!(*nums.iter().max().unwrap(), 2010);
+    }
+
+    #[test]
+    fn test_one_line_nums() {
+        let nums = first_line_only_numbers::<usize>("test_3.txt").unwrap();
+        assert_eq!(nums, vec![16,1,2,0,4,2,7,1,2,14]);
     }
 
     #[test]
