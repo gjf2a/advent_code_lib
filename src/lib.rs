@@ -21,8 +21,13 @@ pub fn first_line_only_numbers<N: FromStr>(filename: &str) -> io::Result<Vec<N>>
     Ok(line2numbers(all_lines(filename)?.next().unwrap().as_str()))
 }
 
+pub fn line2numbers_iter<N: FromStr>(line: &str) -> impl Iterator<Item=N> + '_
+    where <N as FromStr>::Err: Debug {
+    line.split(',').map(|s| s.parse().unwrap())
+}
+
 pub fn line2numbers<N: FromStr>(line: &str) -> Vec<N> where <N as FromStr>::Err: Debug {
-    line.split(',').map(|s| s.parse().unwrap()).collect::<Vec<N>>()
+    line2numbers_iter(line).collect::<Vec<N>>()
 }
 
 pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_processor: F) -> io::Result<()> {
