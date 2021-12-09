@@ -370,10 +370,6 @@ pub fn normalize_degrees(degrees: isize) -> isize {
     degrees % 360
 }
 
-pub trait SearchNode: Hash + Eq + Clone {
-    fn neighbors(&self) -> Box<dyn Iterator<Item=Self> + '_>;
-}
-
 pub fn breadth_first_search<T,F>(start_value: &T, successor_func: F) -> HashMap<T,Option<T>>
     where T: Hash + Eq + Clone, F: Fn(&T) -> Vec<T> {
     let mut open_list = VecDeque::new();
