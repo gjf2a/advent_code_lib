@@ -1,5 +1,5 @@
 use std::slice::Iter;
-use std::{io, fs, mem};
+use std::{io, fs, mem, env};
 use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::Debug;
@@ -8,6 +8,18 @@ use std::fs::File;
 use std::hash::Hash;
 use std::str::FromStr;
 use enum_iterator::IntoEnumIterator;
+
+pub fn generic_main(title: &str, min_args: usize, other_args: &str,
+                    code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
+    assert!(min_args >= 2);
+    let args: Vec<String> = env::args().collect();
+    if args.len() < min_args {
+        println!("Usage: {} filename {}", title, other_args);
+        Ok(())
+    } else {
+        code(args)
+    }
+}
 
 pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
