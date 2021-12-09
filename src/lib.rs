@@ -1,7 +1,7 @@
 use std::slice::Iter;
 use std::{io, fs, mem};
 use std::io::{BufRead, Lines, BufReader};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fmt::Debug;
 use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
@@ -179,6 +179,18 @@ impl Position {
         }
         if result.row < height as isize {Some(result)} else {None}
     }
+
+    pub fn manhattan_distance(&self, other: Position) -> usize {
+        ((self.col - other.col).abs() + (self.row - other.row).abs()) as usize
+    }
+
+    pub fn is_manhattan_neighbor_of(&self, other: Position) -> bool {
+        self.manhattan_distance(other) == 1
+    }
+
+    pub fn manhattan_neighbors(&self) -> HashSet<Position> {
+        ManhattanDir::into_enum_iter().map(|dir| *self + dir.position_offset()).collect()
+    }
 }
 
 impl FromStr for Position {
@@ -238,22 +250,44 @@ pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) 
         .collect()
 }
 
+pub trait DirType {
+    fn offset(&self) -> (isize,isize);
+
+    fn next(&self, p: Position) -> Position {
+        p + Position::from(self.offset())
+    }
+
+    fn position_offset(&self) -> Position {
+        Position::from(self.offset())
+    }
+
+    fn neighbor(&self, col: isize, row: isize) -> (isize,isize) {
+        let (d_col, d_row) = self.offset();
+        (col + d_col, row + d_row)
+    }
+
+    fn position_neighbor(&self, col: isize, row: isize) -> Position {
+        Position::from(self.neighbor(col, row))
+    }
+}
+
 #[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
 pub enum ManhattanDir {
     N, E, S, W
 }
 
-impl ManhattanDir {
-    pub fn next(&self, p: Position) -> Position {
-        p + Position::from(
+impl DirType for ManhattanDir {
+    fn offset(&self) -> (isize, isize) {
         match self {
             ManhattanDir::N => (0, -1),
             ManhattanDir::E => (1, 0),
             ManhattanDir::S => (0, 1),
             ManhattanDir::W => (-1, 0)
-        })
+        }
     }
+}
 
+impl ManhattanDir {
     pub fn inverse(&self) -> ManhattanDir {
         match self {
             ManhattanDir::N => ManhattanDir::S,
@@ -278,26 +312,8 @@ pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
 }
 
-impl Dir {
-    pub fn neighbor(&self, col: isize, row: isize) -> (isize,isize) {
-        let (d_col, d_row) = self.offset();
-        (col + d_col, row + d_row)
-    }
-
-    pub fn right(&self) -> Dir {
-        match self {
-            Dir::N => Dir::Ne,
-            Dir::Ne => Dir::E,
-            Dir::E => Dir::Se,
-            Dir::Se => Dir::S,
-            Dir::S => Dir::Sw,
-            Dir::Sw => Dir::W,
-            Dir::W => Dir::Nw,
-            Dir::Nw => Dir::N
-        }
-    }
-
-    pub fn offset(&self) -> (isize,isize) {
+impl DirType for Dir {
+    fn offset(&self) -> (isize,isize) {
         match self {
             Dir::N  => ( 0, -1),
             Dir::Ne => ( 1, -1),
@@ -309,9 +325,20 @@ impl Dir {
             Dir::Nw => (-1, -1)
         }
     }
+}
 
-    pub fn position_offset(&self) -> Position {
-        Position::from(self.offset())
+impl Dir {
+    pub fn right(&self) -> Dir {
+        match self {
+            Dir::N => Dir::Ne,
+            Dir::Ne => Dir::E,
+            Dir::E => Dir::Se,
+            Dir::Se => Dir::S,
+            Dir::S => Dir::Sw,
+            Dir::Sw => Dir::W,
+            Dir::W => Dir::Nw,
+            Dir::Nw => Dir::N
+        }
     }
 
     pub fn rotated_degrees(&self, degrees: isize) -> Dir {
@@ -477,5 +504,14 @@ mod tests {
             d1 = d1.clockwise();
         }
         assert_eq!(d1, ManhattanDir::N);
+    }
+
+    #[test]
+    fn test_neighbors() {
+        let p = Position::new();
+        for n in p.manhattan_neighbors() {
+            println!("{:?} ({})", n, n.manhattan_distance(p));
+            assert!(n.is_manhattan_neighbor_of(p));
+        }
     }
 }
