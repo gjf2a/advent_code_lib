@@ -363,7 +363,7 @@ pub trait SearchNode: Hash + Eq + Clone {
     fn neighbors(&self) -> Box<dyn Iterator<Item=Self> + '_>;
 }
 
-pub fn breadth_first_search<T: SearchNode>(start_value: &T) -> HashMap<T,Option<T>> {
+pub fn breadth_first_search<T: Hash + Eq + Clone, F: Fn(&T) -> Vec<T>>(start_value: &T, successor_func: F) -> HashMap<T,Option<T>> {
     let mut open_list = VecDeque::new();
     let mut parent_map = HashMap::new();
     open_list.push_back(start_value.clone());
@@ -372,7 +372,7 @@ pub fn breadth_first_search<T: SearchNode>(start_value: &T) -> HashMap<T,Option<
         match open_list.pop_front() {
             None => break,
             Some(candidate) => {
-                for neighbor in candidate.neighbors() {
+                for neighbor in successor_func(&candidate) {
                     if !parent_map.contains_key(&neighbor) {
                         parent_map.insert(neighbor.clone(), Some(candidate.clone()));
                         open_list.push_back(neighbor);
@@ -384,19 +384,14 @@ pub fn breadth_first_search<T: SearchNode>(start_value: &T) -> HashMap<T,Option<
     parent_map
 }
 
-pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
+pub fn path_back_from<T: Hash + Eq + Clone>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
         path.push_front(current.clone());
-        match parent_map.get(&current) {
+        match parent_map.get(&current).and(None) {
             None => break,
-            Some(opt) => {
-                match opt {
-                    None => break,
-                    Some(parent) => {current = parent;}
-                }
-            }
+            Some(parent) => {current = parent;}
         }
     }
     path
@@ -559,36 +554,21 @@ mod tests {
         }
     }
 
-    #[derive(Copy,Clone,Eq,Hash,PartialEq,Debug)]
-    pub struct BFSDemo {
-        p: Position,
-        start: Position,
-        max_dist: usize
-    }
-
-    impl BFSDemo {
-        pub fn new(start: Position, max_dist: usize) -> Self {
-            BFSDemo {start, p: start, max_dist}
-        }
-    }
-
-    impl SearchNode for BFSDemo {
-        fn neighbors(&self) -> Box<dyn Iterator<Item=Self> + '_> {
-            Box::new(self.p.manhattan_neighbors()
-                .filter(|n| n.manhattan_distance(self.start) <= self.max_dist)
-                .map(|n| BFSDemo {start: self.start, p: n, max_dist: self.max_dist}))
-        }
-    }
-
     #[test]
     fn test_bfs() {
+        println!("Test BFS");
         let max_dist = 2;
-        let start_value = BFSDemo::new(Position::new(), max_dist);
-        let paths_back = breadth_first_search(&start_value);
+        let start_value = Position::new();
+        println!("Starting BFS");
+        let paths_back = breadth_first_search(&start_value,
+                                              |p| p.manhattan_neighbors()
+                                                  .filter(|n| n.manhattan_distance(start_value) <= max_dist)
+                                                  .collect());
+        println!("Search complete.");
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
             let len = path_back_from(node, &paths_back).len();
-            println!("From {:?}: {}", node.p, len);
+            println!("From {:?}: {}", node, len);
             assert!(len - 1 <= max_dist);
         }
     }
