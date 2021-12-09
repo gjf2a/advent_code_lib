@@ -8,6 +8,7 @@ use std::fs::File;
 use std::hash::Hash;
 use std::str::FromStr;
 use enum_iterator::IntoEnumIterator;
+use trait_set::trait_set;
 
 pub fn generic_main(title: &str, other_args: &[&str], optional_args: &[&str],
                     code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
@@ -370,8 +371,9 @@ pub fn normalize_degrees(degrees: isize) -> isize {
     degrees % 360
 }
 
-pub trait SearchNode: Hash + Eq + Clone {}
-impl <T: Hash + Eq + Clone> SearchNode for T {}
+trait_set! {
+    pub trait SearchNode = Hash + Eq + Clone;
+}
 
 pub fn breadth_first_search<T,F>(start_value: &T, successor_func: F) -> HashMap<T,Option<T>>
     where T: SearchNode, F: Fn(&T) -> Vec<T> {
