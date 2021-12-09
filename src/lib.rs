@@ -9,12 +9,11 @@ use std::hash::Hash;
 use std::str::FromStr;
 use enum_iterator::IntoEnumIterator;
 
-pub fn generic_main(title: &str, min_args: usize, other_args: &str,
+pub fn generic_main(title: &str, other_args: &[&str], optional_args: &[&str],
                     code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
-    assert!(min_args >= 2);
     let args: Vec<String> = env::args().collect();
-    if args.len() < min_args {
-        println!("Usage: {} filename {}", title, other_args);
+    if args.len() < 2 + other_args.len() {
+        println!("Usage: {} filename {} [{}]", title, other_args.join(" "), optional_args.join(" "));
         Ok(())
     } else {
         code(args)
