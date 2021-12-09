@@ -370,8 +370,11 @@ pub fn normalize_degrees(degrees: isize) -> isize {
     degrees % 360
 }
 
+pub trait SearchNode: Hash + Eq + Clone {}
+impl <T: Hash + Eq + Clone> SearchNode for T {}
+
 pub fn breadth_first_search<T,F>(start_value: &T, successor_func: F) -> HashMap<T,Option<T>>
-    where T: Hash + Eq + Clone, F: Fn(&T) -> Vec<T> {
+    where T: SearchNode, F: Fn(&T) -> Vec<T> {
     let mut open_list = VecDeque::new();
     let mut parent_map = HashMap::new();
     open_list.push_back(start_value.clone());
@@ -392,7 +395,7 @@ pub fn breadth_first_search<T,F>(start_value: &T, successor_func: F) -> HashMap<
     parent_map
 }
 
-pub fn path_back_from<T: Hash + Eq + Clone>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
+pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
