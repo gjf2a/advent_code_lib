@@ -1,7 +1,7 @@
 use std::slice::Iter;
 use std::{io, fs, mem};
 use std::io::{BufRead, Lines, BufReader};
-use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Debug;
 use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
@@ -188,8 +188,8 @@ impl Position {
         self.manhattan_distance(other) == 1
     }
 
-    pub fn manhattan_neighbors(&self) -> HashSet<Position> {
-        ManhattanDir::into_enum_iter().map(|dir| *self + dir.position_offset()).collect()
+    pub fn manhattan_neighbors(&self) -> impl Iterator<Item=Position> + '_ {
+        ManhattanDir::into_enum_iter().map(|dir| *self + dir.position_offset())
     }
 }
 
