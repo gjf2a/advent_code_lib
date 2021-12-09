@@ -359,22 +359,22 @@ pub fn normalize_degrees(degrees: isize) -> isize {
     degrees % 360
 }
 
-pub trait SearchNode: Hash + Eq + Copy + Clone {
+pub trait SearchNode: Hash + Eq + Clone {
     fn neighbors(&self) -> Box<dyn Iterator<Item=Self> + '_>;
 }
 
-pub fn breadth_first_search<T: SearchNode>(start_value: T) -> HashMap<T,Option<T>> {
+pub fn breadth_first_search<T: SearchNode>(start_value: &T) -> HashMap<T,Option<T>> {
     let mut open_list = VecDeque::new();
     let mut parent_map = HashMap::new();
-    open_list.push_back(start_value);
-    parent_map.insert(start_value, None);
+    open_list.push_back(start_value.clone());
+    parent_map.insert(start_value.clone(), None);
     loop {
         match open_list.pop_front() {
             None => break,
             Some(candidate) => {
                 for neighbor in candidate.neighbors() {
                     if !parent_map.contains_key(&neighbor) {
-                        parent_map.insert(neighbor, Some(candidate));
+                        parent_map.insert(neighbor.clone(), Some(candidate.clone()));
                         open_list.push_back(neighbor);
                     }
                 }
@@ -384,17 +384,17 @@ pub fn breadth_first_search<T: SearchNode>(start_value: T) -> HashMap<T,Option<T
     parent_map
 }
 
-pub fn path_back_from<T: SearchNode>(end: T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
+pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
-        path.push_front(current);
+        path.push_front(current.clone());
         match parent_map.get(&current) {
             None => break,
             Some(opt) => {
                 match opt {
                     None => break,
-                    Some(parent) => {current = *parent;}
+                    Some(parent) => {current = parent;}
                 }
             }
         }
@@ -584,10 +584,10 @@ mod tests {
     fn test_bfs() {
         let max_dist = 2;
         let start_value = BFSDemo::new(Position::new(), max_dist);
-        let paths_back = breadth_first_search(start_value);
+        let paths_back = breadth_first_search(&start_value);
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
-            let len = path_back_from(*node, &paths_back).len();
+            let len = path_back_from(node, &paths_back).len();
             println!("From {:?}: {}", node.p, len);
             assert!(len - 1 <= max_dist);
         }
