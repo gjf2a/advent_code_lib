@@ -204,6 +204,10 @@ impl Position {
     pub fn manhattan_neighbors(&self) -> impl Iterator<Item=Position> + '_ {
         ManhattanDir::into_enum_iter().map(|dir| *self + dir.position_offset())
     }
+
+    pub fn neighbors(&self) -> impl Iterator<Item=Position> + '_ {
+        Dir::into_enum_iter().map(|dir| *self + dir.position_offset())
+    }
 }
 
 impl FromStr for Position {
@@ -412,6 +416,7 @@ pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>)
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use super::*;
     use std::iter::FromIterator;
     use Dir::*;
@@ -559,12 +564,28 @@ mod tests {
     }
 
     #[test]
-    fn test_neighbors() {
+    fn test_manhattan_neighbors() {
         let p = Position::new();
+        let mut seen = HashSet::new();
         for n in p.manhattan_neighbors() {
             println!("{:?} ({})", n, n.manhattan_distance(p));
             assert!(n.is_manhattan_neighbor_of(p));
+            seen.insert(n);
         }
+        assert_eq!(seen.len(), 4);
+    }
+
+    #[test]
+    fn test_diagonal_neighbors() {
+        let p = Position::new();
+        let mut seen = HashSet::new();
+        for n in p.neighbors() {
+            println!("{:?}", n);
+            assert!((n.col - p.col).abs() <= 1);
+            assert!((n.row - p.row).abs() <= 1);
+            seen.insert(n);
+        }
+        assert_eq!(seen.len(), 8);
     }
 
     #[test]
