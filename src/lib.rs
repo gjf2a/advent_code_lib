@@ -379,26 +379,60 @@ trait_set! {
     pub trait SearchNode = Hash + Eq + Clone;
 }
 
-pub fn breadth_first_search<T,F>(start_value: &T, successor_func: F) -> HashMap<T,Option<T>>
-    where T: SearchNode, F: Fn(&T) -> Vec<T> {
-    let mut open_list = VecDeque::new();
-    let mut parent_map = HashMap::new();
-    open_list.push_back(start_value.clone());
-    parent_map.insert(start_value.clone(), None);
-    loop {
-        match open_list.pop_front() {
-            None => break,
-            Some(candidate) => {
-                for neighbor in successor_func(&candidate) {
-                    if !parent_map.contains_key(&neighbor) {
-                        parent_map.insert(neighbor.clone(), Some(candidate.clone()));
-                        open_list.push_back(neighbor);
-                    }
-                }
-            }
+pub trait SearchQueue<T> {
+    fn new() -> Self;
+    fn enqueue(&mut self, item: &T);
+    fn dequeue(&mut self) -> Option<T>;
+}
+
+impl <T:Clone> SearchQueue<T> for VecDeque<T> {
+    fn new() -> Self {VecDeque::new()}
+    fn enqueue(&mut self, item: &T) {self.push_back(item.clone());}
+    fn dequeue(&mut self) -> Option<T> {self.pop_front()}
+}
+
+pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
+    parent_map: HashMap<T, Option<T>>,
+    queue: Q,
+    last_dequeued: Option<T>
+}
+
+impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> {
+    fn new() -> Self {
+        ParentMapQueue {parent_map: HashMap::new(), queue: Q::new(), last_dequeued: None}
+    }
+
+    fn enqueue(&mut self, item: &T) {
+        if !self.parent_map.contains_key(item) {
+            self.parent_map.insert(item.clone(), self.last_dequeued.clone());
+            self.queue.enqueue(item);
         }
     }
-    parent_map
+
+    fn dequeue(&mut self) -> Option<T> {
+        let dequeued = self.queue.dequeue();
+        self.last_dequeued = dequeued.clone();
+        dequeued
+    }
+}
+
+pub fn search<T, S, Q>(start_value: &T, add_successors: S) -> Q
+    where T: Clone, Q: SearchQueue<T>, S: Fn(&T, &mut Q) {
+    let mut open_list = Q::new();
+    open_list.enqueue(start_value);
+    loop {
+        match open_list.dequeue() {
+            Some(candidate) => {
+                add_successors(&candidate, &mut open_list);
+            }
+            None => return open_list
+        }
+    }
+}
+
+pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> HashMap<T,Option<T>>
+    where T: SearchNode, S: Fn(&T, &mut ParentMapQueue<T, VecDeque<T>>) {
+    search(start_value, add_successors).parent_map
 }
 
 pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
@@ -594,10 +628,12 @@ mod tests {
         let max_dist = 2;
         let start_value = Position::new();
         println!("Starting BFS");
-        let paths_back = breadth_first_search(&start_value,
-                                              |p| p.manhattan_neighbors()
-                                                  .filter(|n| n.manhattan_distance(start_value) <= max_dist)
-                                                  .collect());
+        let paths_back =
+            breadth_first_search(&start_value, |p, q|
+                for n in p.manhattan_neighbors()
+                    .filter(|n| n.manhattan_distance(start_value) <= max_dist) {
+                    q.enqueue(&n);
+                });
         println!("Search complete.");
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
