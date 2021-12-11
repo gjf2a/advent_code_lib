@@ -9,6 +9,7 @@ use std::hash::Hash;
 use std::str::FromStr;
 use enum_iterator::IntoEnumIterator;
 use trait_set::trait_set;
+use derive_getters::Getters;
 
 pub fn generic_main(title: &str, other_args: &[&str], optional_args: &[&str],
                     code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
@@ -383,12 +384,14 @@ pub trait SearchQueue<T> {
     fn new() -> Self;
     fn enqueue(&mut self, item: &T);
     fn dequeue(&mut self) -> Option<T>;
+    fn len(&self) -> usize;
 }
 
 impl <T:Clone> SearchQueue<T> for VecDeque<T> {
     fn new() -> Self {VecDeque::new()}
     fn enqueue(&mut self, item: &T) {self.push_back(item.clone());}
     fn dequeue(&mut self) -> Option<T> {self.pop_front()}
+    fn len(&self) -> usize {self.len()}
 }
 
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
@@ -414,26 +417,43 @@ impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> 
         self.last_dequeued = dequeued.clone();
         dequeued
     }
+
+    fn len(&self) -> usize {self.queue.len()}
 }
 
-pub fn search<T, S, Q>(open_list: &mut Q, add_successors: S)
-    where T: Clone, Q: SearchQueue<T>, S: Fn(&T, &mut Q) {
+#[derive(Clone, Debug, Getters)]
+pub struct SearchResult<Q> {
+    enqueued: usize,
+    dequeued: usize,
+    open_list: Q
+}
+
+pub fn search<'a, T, S, Q, I>(start_nodes: I, mut add_successors: S) -> SearchResult<Q>
+    where T: 'a + Clone, Q: SearchQueue<T>, S: FnMut(&T, &mut Q), I: Iterator<Item=&'a T> {
+    let mut open_list = Q::new();
+    let mut enqueued = 0;
+    let mut dequeued = 0;
+    for node in start_nodes {
+        open_list.enqueue(node);
+        enqueued += 1;
+    }
     loop {
         match open_list.dequeue() {
             Some(candidate) => {
-                add_successors(&candidate, open_list);
+                dequeued += 1;
+                let before = open_list.len();
+                add_successors(&candidate, &mut open_list);
+                assert!(open_list.len() >= before);
+                enqueued += open_list.len() - before;
             }
-            None => break
+            None => return SearchResult {enqueued, dequeued, open_list}
         }
     }
 }
 
 pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> HashMap<T,Option<T>>
-    where T: SearchNode, S: Fn(&T, &mut ParentMapQueue<T, VecDeque<T>>) {
-    let mut open_list = ParentMapQueue::new();
-    open_list.enqueue(start_value);
-    search(&mut open_list, add_successors);
-    open_list.parent_map
+    where T: SearchNode, S: FnMut(&T, &mut ParentMapQueue<T, VecDeque<T>>) {
+    search(std::iter::once(start_value), add_successors).open_list.parent_map
 }
 
 pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
