@@ -416,23 +416,24 @@ impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> 
     }
 }
 
-pub fn search<T, S, Q>(start_value: &T, add_successors: S) -> Q
+pub fn search<T, S, Q>(open_list: &mut Q, add_successors: S)
     where T: Clone, Q: SearchQueue<T>, S: Fn(&T, &mut Q) {
-    let mut open_list = Q::new();
-    open_list.enqueue(start_value);
     loop {
         match open_list.dequeue() {
             Some(candidate) => {
-                add_successors(&candidate, &mut open_list);
+                add_successors(&candidate, open_list);
             }
-            None => return open_list
+            None => break
         }
     }
 }
 
 pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> HashMap<T,Option<T>>
     where T: SearchNode, S: Fn(&T, &mut ParentMapQueue<T, VecDeque<T>>) {
-    search(start_value, add_successors).parent_map
+    let mut open_list = ParentMapQueue::new();
+    open_list.enqueue(start_value);
+    search(&mut open_list, add_successors);
+    open_list.parent_map
 }
 
 pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
