@@ -518,6 +518,7 @@ impl <T> SingleListNode<T> {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Arena<T> {
     memory: Vec<SingleListNode<T>>
 }
