@@ -467,6 +467,7 @@ pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &BTreeMap<T,Option<T>>
     path
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct AdjacencySets {
     graph: BTreeMap<String,BTreeSet<String>>
 }
