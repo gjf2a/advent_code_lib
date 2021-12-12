@@ -1,6 +1,6 @@
 [package]
 name = "advent_code_lib"
-version = "0.7.3"
+version = "0.8.0"
 authors = ["gjf2a <ferrer@hendrix.edu>"]
 edition = "2021"
 
@@ -11,3 +11,4 @@ maplit = "1.0.2"
 enum-iterator = "0.6.0"
 trait-set = "0.2"
 derive-getters = "0.2.0"
+common_macros = "0.1"

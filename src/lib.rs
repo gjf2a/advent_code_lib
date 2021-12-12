@@ -1,7 +1,7 @@
 use std::slice::Iter;
 use std::{io, fs, mem, env};
 use std::io::{BufRead, Lines, BufReader};
-use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Debug;
 use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
@@ -10,6 +10,7 @@ use std::str::FromStr;
 use enum_iterator::IntoEnumIterator;
 use trait_set::trait_set;
 use derive_getters::Getters;
+use common_macros::b_tree_set;
 
 pub fn generic_main(title: &str, other_args: &[&str], optional_args: &[&str],
                     code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
@@ -377,7 +378,7 @@ pub fn normalize_degrees(degrees: isize) -> isize {
 }
 
 trait_set! {
-    pub trait SearchNode = Hash + Eq + Clone;
+    pub trait SearchNode = Ord + Eq + Clone;
 }
 
 pub trait SearchQueue<T> {
@@ -395,14 +396,14 @@ impl <T:Clone> SearchQueue<T> for VecDeque<T> {
 }
 
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
-    parent_map: HashMap<T, Option<T>>,
+    parent_map: BTreeMap<T, Option<T>>,
     queue: Q,
     last_dequeued: Option<T>
 }
 
 impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> {
     fn new() -> Self {
-        ParentMapQueue {parent_map: HashMap::new(), queue: Q::new(), last_dequeued: None}
+        ParentMapQueue {parent_map: BTreeMap::new(), queue: Q::new(), last_dequeued: None}
     }
 
     fn enqueue(&mut self, item: &T) {
@@ -446,14 +447,14 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
     }
 }
 
-pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> HashMap<T,Option<T>>
+pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> BTreeMap<T,Option<T>>
     where T: SearchNode, S: FnMut(&T, &mut ParentMapQueue<T, VecDeque<T>>) {
     let mut open_list = ParentMapQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>) -> VecDeque<T> {
+pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &BTreeMap<T,Option<T>>) -> VecDeque<T> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
@@ -464,6 +465,36 @@ pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &HashMap<T,Option<T>>)
         }
     }
     path
+}
+
+pub struct AdjacencySets {
+    graph: BTreeMap<String,BTreeSet<String>>
+}
+
+impl AdjacencySets {
+    pub fn new() -> Self {
+        AdjacencySets {graph: BTreeMap::new()}
+    }
+
+    pub fn neighbors_of(&self, node: &str) -> Option<&BTreeSet<String>> {
+        self.graph.get(node)
+    }
+
+    pub fn connect2(&mut self, start: &str, end: &str) {
+        self.connect(start, end);
+        self.connect(end, start);
+    }
+
+    pub fn connect(&mut self, start: &str, end: &str) {
+        match self.graph.get_mut(start) {
+            None => {
+                self.graph.insert(start.to_string(), b_tree_set! {end.to_string()});
+            }
+            Some(connections) => {
+                connections.insert(end.to_string());
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -659,5 +690,18 @@ mod tests {
             println!("From {:?}: {}", node, len);
             assert!(len - 1 <= max_dist);
         }
+    }
+
+    #[test]
+    fn graph_test() {
+        let mut graph = AdjacencySets::new();
+        for (a, b) in [("start", "A"), ("start", "b"), ("A", "c"), ("A", "b"), ("b", "d"), ("A", "end"), ("b", "end")] {
+            graph.connect2(a, b);
+        }
+        let parent_map =
+            breadth_first_search(&"start".to_string(),
+                                 |node, q| graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n)));
+        let parent_map_str = format!("{:?}", parent_map);
+        assert_eq!(parent_map_str.as_str(), r#"{"A": Some("start"), "b": Some("start"), "c": Some("A"), "d": Some("b"), "end": Some("A"), "start": None}"#);
     }
 }
