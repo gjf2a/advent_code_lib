@@ -459,7 +459,7 @@ pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &BTreeMap<T,Option<T>>
     let mut current = end;
     loop {
         path.push_front(current.clone());
-        match parent_map.get(&current).and(None) {
+        match parent_map.get(&current).unwrap() {
             None => break,
             Some(parent) => {current = parent;}
         }
@@ -710,5 +710,8 @@ mod tests {
                                  |node, q| graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n)));
         let parent_map_str = format!("{:?}", parent_map);
         assert_eq!(parent_map_str.as_str(), r#"{"A": Some("start"), "b": Some("start"), "c": Some("A"), "d": Some("b"), "end": Some("A"), "start": None}"#);
+        let path = path_back_from(&"end".to_string(), &parent_map);
+        let path_str = format!("{:?}", path);
+        assert_eq!(path_str, r#"["start", "A", "end"]"#);
     }
 }
