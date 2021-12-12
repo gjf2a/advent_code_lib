@@ -502,6 +502,61 @@ impl AdjacencySets {
     }
 }
 
+pub struct SingleListNode<T> {
+    value: T,
+    addr: usize,
+    next: Option<usize>
+}
+
+impl <T> SingleListNode<T> {
+    pub fn get(&self) -> &T {
+        &self.value
+    }
+
+    pub fn iter<'a>(&self, arena: &'a Arena<T>) -> SingleListIterator<'a, T> {
+        SingleListIterator {pointer: Some(self.addr), arena}
+    }
+}
+
+pub struct Arena<T> {
+    memory: Vec<SingleListNode<T>>
+}
+
+impl <T> Arena<T> {
+    pub fn new() -> Self {
+        Arena {memory: Vec::new()}
+    }
+
+    pub fn get(&self, location: usize) -> &SingleListNode<T> {
+        &self.memory[location]
+    }
+
+    pub fn alloc(&mut self, value: T, next: Option<usize>) -> usize {
+        let addr = self.memory.len();
+        self.memory.push(SingleListNode {value, next, addr} );
+        addr
+    }
+}
+
+pub struct SingleListIterator<'a, T> {
+    pointer: Option<usize>,
+    arena: &'a Arena<T>
+}
+
+impl <'a, T> Iterator for SingleListIterator<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.pointer {
+            None => None,
+            Some(current) => {
+                self.pointer = self.arena.get(current).next;
+                Some(&self.arena.get(current).value)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
@@ -713,5 +768,19 @@ mod tests {
         let path = path_back_from(&"end".to_string(), &parent_map);
         let path_str = format!("{:?}", path);
         assert_eq!(path_str, r#"["start", "A", "end"]"#);
+    }
+
+    #[test]
+    fn test_linked_list() {
+        let mut arena = Arena::new();
+        let mut next = None;
+        let nums = [1, 2, 3, 4, 5];
+        for i in nums.iter() {
+            next = Some(arena.alloc(i, next));
+        }
+        let start = next.unwrap();
+        for (retrieved, original) in arena.get(start).iter(&arena).zip(nums.iter().rev()) {
+            assert_eq!(**retrieved, *original);
+        }
     }
 }
