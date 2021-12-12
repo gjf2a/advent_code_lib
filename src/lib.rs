@@ -502,13 +502,14 @@ impl AdjacencySets {
     }
 }
 
-pub struct SingleListNode<T> {
+#[derive(Debug, Clone)]
+pub struct SingleListNode<T: Clone> {
     value: T,
     addr: usize,
     next: Option<usize>
 }
 
-impl <T> SingleListNode<T> {
+impl <T: Clone> SingleListNode<T> {
     pub fn get(&self) -> &T {
         &self.value
     }
@@ -519,11 +520,11 @@ impl <T> SingleListNode<T> {
 }
 
 #[derive(Debug, Clone)]
-pub struct Arena<T> {
+pub struct Arena<T: Clone> {
     memory: Vec<SingleListNode<T>>
 }
 
-impl <T> Arena<T> {
+impl <T: Clone> Arena<T> {
     pub fn new() -> Self {
         Arena {memory: Vec::new()}
     }
@@ -539,12 +540,12 @@ impl <T> Arena<T> {
     }
 }
 
-pub struct SingleListIterator<'a, T> {
+pub struct SingleListIterator<'a, T: Clone> {
     pointer: Option<usize>,
     arena: &'a Arena<T>
 }
 
-impl <'a, T> Iterator for SingleListIterator<'a, T> {
+impl <'a, T: Clone> Iterator for SingleListIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
