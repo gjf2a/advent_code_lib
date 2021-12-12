@@ -477,6 +477,10 @@ impl AdjacencySets {
         AdjacencySets {graph: BTreeMap::new()}
     }
 
+    pub fn keys(&self) -> impl Iterator<Item=&str> {
+        self.graph.keys().map(|s| s.as_str())
+    }
+
     pub fn neighbors_of(&self, node: &str) -> Option<&BTreeSet<String>> {
         self.graph.get(node)
     }
@@ -699,6 +703,8 @@ mod tests {
         for (a, b) in [("start", "A"), ("start", "b"), ("A", "c"), ("A", "b"), ("b", "d"), ("A", "end"), ("b", "end")] {
             graph.connect2(a, b);
         }
+        let keys = graph.keys().collect::<Vec<_>>();
+        assert_eq!(keys, vec!["A", "b", "c", "d", "end", "start"]);
         let parent_map =
             breadth_first_search(&"start".to_string(),
                                  |node, q| graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n)));
