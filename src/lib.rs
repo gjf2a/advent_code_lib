@@ -412,6 +412,10 @@ impl <T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
     pub fn parent_of(&self, item: &T) -> &Option<T> {
         self.parent_map.get(item).unwrap_or(&None)
     }
+
+    pub fn path_back_from(&self, end: &T) -> VecDeque<T> {
+        path_back_from(end, &self.parent_map)
+    }
 }
 
 impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> {
