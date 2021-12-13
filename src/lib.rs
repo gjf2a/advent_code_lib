@@ -452,7 +452,6 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
     let mut enqueued = open_list.len();
     let mut dequeued = 0;
     loop {
-        println!("open_list:  {:?}", open_list);
         match open_list.dequeue() {
             Some(candidate) => {
                 dequeued += 1;
@@ -461,7 +460,7 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
                 assert!(open_list.len() >= before);
                 enqueued += open_list.len() - before;
             }
-            None => {println!("quitting"); return SearchResult {enqueued, dequeued, open_list};}
+            None => return SearchResult {enqueued, dequeued, open_list}
         }
     }
 }
