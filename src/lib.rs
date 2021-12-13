@@ -402,6 +402,7 @@ impl <T:Clone> SearchQueue<T> for Vec<T> {
     fn len(&self) -> usize {self.len()}
 }
 
+#[derive(Debug, Clone)]
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
     parent_map: BTreeMap<T, Option<T>>,
     queue: Q,
