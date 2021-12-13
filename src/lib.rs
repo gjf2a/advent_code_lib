@@ -401,6 +401,12 @@ pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
     last_dequeued: Option<T>
 }
 
+impl <T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
+    pub fn parent_of(&self, item: &T) -> &Option<T> {
+        self.parent_map.get(item).unwrap_or(&None)
+    }
+}
+
 impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> {
     fn new() -> Self {
         ParentMapQueue {parent_map: BTreeMap::new(), queue: Q::new(), last_dequeued: None}
