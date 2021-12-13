@@ -404,9 +404,9 @@ impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
 
 #[derive(Debug, Clone)]
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
-    parent_map: BTreeMap<T, Option<T>>,
     queue: Q,
-    last_dequeued: Option<T>
+    last_dequeued: Option<T>,
+    parent_map: BTreeMap<T, Option<T>>
 }
 
 impl <T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
