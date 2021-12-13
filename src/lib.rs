@@ -378,24 +378,24 @@ pub fn normalize_degrees(degrees: isize) -> isize {
 }
 
 trait_set! {
-    pub trait SearchNode = Ord + Eq + Clone;
+    pub trait SearchNode = Ord + Eq + Clone + Debug;
 }
 
-pub trait SearchQueue<T> {
+pub trait SearchQueue<T> : Debug {
     fn new() -> Self;
     fn enqueue(&mut self, item: &T);
     fn dequeue(&mut self) -> Option<T>;
     fn len(&self) -> usize;
 }
 
-impl <T:Clone> SearchQueue<T> for VecDeque<T> {
+impl <T:Clone+Debug> SearchQueue<T> for VecDeque<T> {
     fn new() -> Self {VecDeque::new()}
     fn enqueue(&mut self, item: &T) {self.push_back(item.clone());}
     fn dequeue(&mut self) -> Option<T> {self.pop_front()}
     fn len(&self) -> usize {self.len()}
 }
 
-impl <T:Clone> SearchQueue<T> for Vec<T> {
+impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
     fn new() -> Self {Vec::new()}
     fn enqueue(&mut self, item: &T) {self.push(item.clone());}
     fn dequeue(&mut self) -> Option<T> {self.pop()}
@@ -452,6 +452,7 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
     let mut enqueued = open_list.len();
     let mut dequeued = 0;
     loop {
+        println!("open_list:  {:?}", open_list);
         match open_list.dequeue() {
             Some(candidate) => {
                 dequeued += 1;
@@ -460,7 +461,7 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
                 assert!(open_list.len() >= before);
                 enqueued += open_list.len() - before;
             }
-            None => return SearchResult {enqueued, dequeued, open_list}
+            None => {println!("quitting"); return SearchResult {enqueued, dequeued, open_list};}
         }
     }
 }
