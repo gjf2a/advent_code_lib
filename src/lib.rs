@@ -395,6 +395,13 @@ impl <T:Clone> SearchQueue<T> for VecDeque<T> {
     fn len(&self) -> usize {self.len()}
 }
 
+impl <T:Clone> SearchQueue<T> for Vec<T> {
+    fn new() -> Self {Vec::new()}
+    fn enqueue(&mut self, item: &T) {self.push(item.clone());}
+    fn dequeue(&mut self) -> Option<T> {self.pop()}
+    fn len(&self) -> usize {self.len()}
+}
+
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
     parent_map: BTreeMap<T, Option<T>>,
     queue: Q,
