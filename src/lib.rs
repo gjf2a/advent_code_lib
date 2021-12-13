@@ -551,6 +551,10 @@ impl <T: Clone> Arena<T> {
         &self.memory[location]
     }
 
+    pub fn iter_from(&self, location: usize) -> SingleListIterator<T> {
+        self.get(location).iter(&self)
+    }
+
     pub fn alloc(&mut self, value: T, next: Option<usize>) -> usize {
         let addr = self.memory.len();
         self.memory.push(SingleListNode {value, next, addr} );
