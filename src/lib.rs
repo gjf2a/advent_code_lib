@@ -12,8 +12,8 @@ use trait_set::trait_set;
 use derive_getters::Getters;
 use common_macros::b_tree_set;
 
-pub fn generic_main(other_args: &[&str], optional_args: &[&str],
-                    code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
+pub fn advent_main(other_args: &[&str], optional_args: &[&str],
+                   code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 + other_args.len() {
         println!("Usage: {} filename {} [{}]", args[0], other_args.join(" "), optional_args.join(" "));
