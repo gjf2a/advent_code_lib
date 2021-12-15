@@ -384,11 +384,13 @@ mod tests {
         let start_value = Position::new();
         println!("Starting BFS");
         let paths_back =
-            breadth_first_search(&start_value, |p, q|
+            breadth_first_search(&start_value, |p, q| {
                 for n in p.manhattan_neighbors()
                     .filter(|n| n.manhattan_distance(start_value) <= max_dist) {
                     q.enqueue(&n);
-                });
+                }
+                ContinueSearch::Yes
+            });
         println!("Search complete.");
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
@@ -408,7 +410,10 @@ mod tests {
         assert_eq!(keys, vec!["A", "b", "c", "d", "end", "start"]);
         let parent_map =
             breadth_first_search(&"start".to_string(),
-                                 |node, q| graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n)));
+                                 |node, q| {
+                                     graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n));
+                                     ContinueSearch::Yes
+                                 });
         let parent_map_str = format!("{:?}", parent_map);
         assert_eq!(parent_map_str.as_str(), r#"{"A": Some("start"), "b": Some("start"), "c": Some("A"), "d": Some("b"), "end": Some("A"), "start": None}"#);
         let path = path_back_from(&"end".to_string(), &parent_map);

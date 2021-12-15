@@ -81,8 +81,13 @@ pub struct SearchResult<Q> {
     open_list: Q
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ContinueSearch {
+    Yes, No
+}
+
 pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<Q>
-    where T: Clone, Q: SearchQueue<T>, S: FnMut(&T, &mut Q) {
+    where T: Clone, Q: SearchQueue<T>, S: FnMut(&T, &mut Q) -> ContinueSearch {
     let mut enqueued = open_list.len();
     let mut dequeued = 0;
     loop {
@@ -90,17 +95,21 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
             Some(candidate) => {
                 dequeued += 1;
                 let before = open_list.len();
-                add_successors(&candidate, &mut open_list);
+                let cont = add_successors(&candidate, &mut open_list);
                 assert!(open_list.len() >= before);
                 enqueued += open_list.len() - before;
+                if cont == ContinueSearch::No {
+                    break;
+                }
             }
-            None => return SearchResult {enqueued, dequeued, open_list}
+            None => break
         }
     }
+    SearchResult {enqueued, dequeued, open_list}
 }
 
 pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> BTreeMap<T,Option<T>>
-    where T: SearchNode, S: FnMut(&T, &mut ParentMapQueue<T, VecDeque<T>>) {
+    where T: SearchNode, S: FnMut(&T, &mut ParentMapQueue<T, VecDeque<T>>) -> ContinueSearch {
     let mut open_list = ParentMapQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors).open_list.parent_map
