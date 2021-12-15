@@ -1,7 +1,7 @@
 use std::slice::Iter;
 use std::{io, fs, mem, env};
 use std::io::{BufRead, Lines, BufReader};
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::Debug;
 use std::ops::{Add, Mul, AddAssign, MulAssign, Sub};
 use std::fs::File;
@@ -54,6 +54,17 @@ pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_
 
 pub fn file2nums(filename: &str) -> io::Result<Vec<isize>> {
     Ok(all_lines(filename)?.map(|line| line.parse::<isize>().unwrap()).collect())
+}
+
+pub fn nums2map(filename: &str) -> io::Result<HashMap<Position,u32>> {
+    let mut num_map = HashMap::new();
+    for (row, line) in all_lines(filename)?.enumerate() {
+        for (col, height_char) in line.chars().enumerate() {
+            num_map.insert(Position::from((col as isize, row as isize)),
+                           height_char.to_digit(10).unwrap());
+        }
+    }
+    Ok(num_map)
 }
 
 pub fn pass_counter<F: Fn(&str) -> bool>(filename: &str, passes_check: F) -> io::Result<String> {
@@ -805,6 +816,15 @@ mod tests {
         let start = next.unwrap();
         for (retrieved, original) in arena.get(start).iter(&arena).zip(nums.iter().rev()) {
             assert_eq!(**retrieved, *original);
+        }
+    }
+
+    #[test]
+    fn test_num_map() {
+        let map = nums2map("num_grid.txt").unwrap();
+        for (p, value) in [((0, 0), 1), ((9, 0), 2), ((2, 1), 8), ((7, 8), 5), ((8, 7), 3)] {
+            let p = Position::from(p);
+            assert_eq!(*map.get(&p).unwrap(), value);
         }
     }
 }
