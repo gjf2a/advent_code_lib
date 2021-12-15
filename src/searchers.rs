@@ -40,7 +40,7 @@ impl <T:SearchNode> SearchQueue<T> for BinaryHeap<T> {
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
     queue: Q,
     last_dequeued: Option<T>,
-    pub(crate) parent_map: BTreeMap<T, Option<T>>
+    parent_map: BTreeMap<T, Option<T>>
 }
 
 impl <T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
@@ -78,7 +78,7 @@ impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> 
 pub struct SearchResult<Q> {
     enqueued: usize,
     dequeued: usize,
-    pub(crate) open_list: Q
+    open_list: Q
 }
 
 pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<Q>

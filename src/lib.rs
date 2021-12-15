@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Debug;
 use std::fs::File;
 use std::str::FromStr;
+use bare_metal_modulo::ModNumC;
 use enum_iterator::IntoEnumIterator;
 
 pub use crate::searchers::*;
@@ -57,12 +58,12 @@ pub fn file2nums(filename: &str) -> io::Result<Vec<isize>> {
     Ok(all_lines(filename)?.map(|line| line.parse::<isize>().unwrap()).collect())
 }
 
-pub fn nums2map(filename: &str) -> io::Result<HashMap<Position,u32>> {
+pub fn nums2map(filename: &str) -> io::Result<HashMap<Position, ModNumC<u32, 10> >> {
     let mut num_map = HashMap::new();
     for (row, line) in all_lines(filename)?.enumerate() {
-        for (col, height_char) in line.chars().enumerate() {
+        for (col, value) in line.chars().enumerate() {
             num_map.insert(Position::from((col as isize, row as isize)),
-                           height_char.to_digit(10).unwrap());
+                           ModNumC::new(value.to_digit(10).unwrap()));
         }
     }
     Ok(num_map)
