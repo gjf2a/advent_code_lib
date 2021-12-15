@@ -412,8 +412,7 @@ mod tests {
             breadth_first_search(&"start".to_string(),
                                  |node, q| {
                                      graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n));
-                                     ContinueSearch::Yes
-                                 });
+                                     ContinueSearch::Yes});
         let parent_map_str = format!("{:?}", parent_map);
         assert_eq!(parent_map_str.as_str(), r#"{"A": Some("start"), "b": Some("start"), "c": Some("A"), "d": Some("b"), "end": Some("A"), "start": None}"#);
         let path = path_back_from(&"end".to_string(), &parent_map);
