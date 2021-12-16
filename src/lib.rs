@@ -138,8 +138,12 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
     }
 }
 
+pub fn make_inner_io_error(message: &str) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, message)
+}
+
 pub fn make_io_error<T>(message: &str) -> io::Result<T> {
-    Err(io::Error::new(io::ErrorKind::InvalidData, message))
+    Err(make_inner_io_error(message))
 }
 
 #[derive(Debug, Clone)]
