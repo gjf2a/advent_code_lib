@@ -146,8 +146,8 @@ pub fn make_io_error<T>(message: &str) -> io::Result<T> {
     Err(make_inner_io_error(message))
 }
 
-pub fn assert_io_error<T: Eq>(testee: &T, tester: &T, message: &str) -> io::Result<()> {
-    if tester == testee {
+pub fn assert_io_error(condition: bool, message: &str) -> io::Result<()> {
+    if condition {
         Ok(())
     } else {
         make_io_error(message)
