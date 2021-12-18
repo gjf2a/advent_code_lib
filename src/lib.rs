@@ -5,7 +5,7 @@ use std::slice::Iter;
 use std::{io, fs, env};
 use std::io::{BufRead, Lines, BufReader};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::fs::File;
 use std::str::FromStr;
 use bare_metal_modulo::ModNumC;
@@ -154,8 +154,13 @@ pub fn assert_io_error(condition: bool, message: &str) -> io::Result<()> {
     }
 }
 
-pub fn assert_token<T: Copy + Eq>(next_token: Option<T>, target: T, message: &str) -> io::Result<()> {
-    assert_io_error(next_token.map_or(false, |t| t == target), message)
+pub fn assert_token<T: Copy + Eq + Display>(next_token: Option<T>, target: T) -> io::Result<()> {
+    if let Some(token) = next_token {
+        assert_io_error(token == target,
+                        format!("Token '{}' did not match expected '{}'", token, target).as_str())
+    } else {
+        make_io_error(format!("Looking for {}, but no tokens left.", target).as_str())
+    }
 }
 
 #[derive(Debug, Clone)]
