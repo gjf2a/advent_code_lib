@@ -154,8 +154,8 @@ pub fn assert_io_error(condition: bool, message: &str) -> io::Result<()> {
     }
 }
 
-pub fn assert_token<T: Copy + Eq>(next_token: Option<&T>, target: T, message: &str) -> io::Result<()> {
-    assert_io_error(next_token.map_or(false, |t| *t == target), message)
+pub fn assert_token<T: Copy + Eq>(next_token: Option<T>, target: T, message: &str) -> io::Result<()> {
+    assert_io_error(next_token.map_or(false, |t| t == target), message)
 }
 
 #[derive(Debug, Clone)]
