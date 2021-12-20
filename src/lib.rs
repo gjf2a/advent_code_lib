@@ -304,7 +304,7 @@ mod tests {
     }
 
     #[test]
-    fn test_offset_iterator() {
+    fn test_offset_row_major_position_iterator() {
         let iter = OffsetRowMajorPositionIterator::new(-1, -2, 1, -1);
         let expected = [(-1, -2), (0, -2), (1, -2), (-1, -1), (0, -1), (1, -1)];
         for (p, (expect_col, expect_row)) in iter.zip(expected.iter()) {
