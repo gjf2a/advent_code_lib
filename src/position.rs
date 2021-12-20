@@ -142,6 +142,39 @@ impl Iterator for RowMajorPositionIterator {
     }
 }
 
+pub struct OffsetRowMajorPositionIterator {
+    min_col: isize, max_col: isize, max_row: isize, next: Option<Position>
+}
+
+impl OffsetRowMajorPositionIterator {
+    pub fn new(min_col: isize, min_row: isize, max_col: isize, max_row: isize) -> Self {
+        OffsetRowMajorPositionIterator {min_col, max_col, max_row,
+            next: Some(Position {col: min_col, row: min_row})}
+    }
+
+    fn next_in_grid(&self, p: Position) -> Option<Position> {
+        let mut updated = Position::from((p.col + 1, p.row));
+        if updated.col > self.max_col {
+            updated.col = self.min_col;
+            updated.row += 1;
+            if updated.row > self.max_row {
+                return None
+            }
+        }
+        Some(updated)
+    }
+}
+
+impl Iterator for OffsetRowMajorPositionIterator {
+    type Item = Position;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut future = self.next.and_then(|p| self.next_in_grid(p));
+        mem::swap(&mut future, &mut self.next);
+        future
+    }
+}
+
 pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) -> Vec<Vec<T>> {
     (0..height)
         .map(|y| (0..width)

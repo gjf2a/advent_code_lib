@@ -304,6 +304,16 @@ mod tests {
     }
 
     #[test]
+    fn test_offset_iterator() {
+        let iter = OffsetRowMajorPositionIterator::new(-1, -2, 1, -1);
+        let expected = [(-1, -2), (0, -2), (1, -2), (-1, -1), (0, -1), (1, -1)];
+        for (p, (expect_col, expect_row)) in iter.zip(expected.iter()) {
+            let expect = Position::from((*expect_col, *expect_row));
+            assert_eq!(expect, p);
+        }
+     }
+
+    #[test]
     fn test_pos_math() {
         let mut p = Position::from((2, 3));
         assert_eq!(Position::from((4, 6)), p * 2);
