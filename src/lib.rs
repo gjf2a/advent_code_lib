@@ -224,11 +224,29 @@ impl <'a, T: Clone> Iterator for SingleListIterator<'a, T> {
     }
 }
 
+pub fn combinations_of<F:FnMut(&[usize; O]), const O: usize>(inner: usize, func: &mut F) {
+    let values = [0; O];
+    combo_help(O - 1, inner, &values, func);
+}
+
+fn combo_help<F:FnMut(&[usize; O]), const O: usize>(outer: usize, inner: usize, partial: &[usize; O], func: &mut F) {
+    for j in 0..inner {
+        let mut partial = partial.clone();
+        partial[outer] = j;
+        if outer == 0 {
+            func(&partial)
+        } else {
+            combo_help(outer - 1, inner, &partial, func);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
     use super::*;
     use std::iter::FromIterator;
+    use hash_histogram::HashHistogram;
     use Dir::*;
 
     #[test]
@@ -471,6 +489,18 @@ mod tests {
         for (p, value) in [((0, 0), 1), ((9, 0), 2), ((2, 1), 8), ((7, 8), 5), ((8, 7), 3)] {
             let p = Position::from(p);
             assert_eq!(*map.get(&p).unwrap(), value);
+        }
+    }
+
+    #[test]
+    fn test_combinations() {
+        let mut roll_counts = HashHistogram::new();
+        combinations_of(6, &mut |arr: &[usize; 3]| {
+            roll_counts.bump(&arr.iter().map(|n| *n + 1).sum::<usize>());
+        });
+        for (num, count) in [(12, 25), (13, 21), (18, 1), (5, 6), (10, 27), (6, 10), (7, 15),
+            (8, 21), (16, 6), (11, 27), (3, 1), (17, 3), (14, 15), (4, 3), (15, 10), (9, 25)] {
+            assert_eq!(roll_counts.count(&num), count);
         }
     }
 }
