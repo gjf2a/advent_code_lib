@@ -192,11 +192,11 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, S, C>(start_value: &T, add_successors: S) -> ParentMap<T>
+pub fn best_first_search<T, S, C>(start_value: &T, add_successors: S) -> SearchResult<AStarQueue<C, T>>
     where T: AStarNode<Cost=C>, C: Num+Ord, S: FnMut(&T, &mut AStarQueue<C, T>) -> ContinueSearch {
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
-    search(open_list, add_successors).open_list.parents
+    search(open_list, add_successors)
 }
 
 pub fn depth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMap<T>
