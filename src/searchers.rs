@@ -43,37 +43,39 @@ impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
 
 pub trait AStarNode: SearchNode {
     type Cost: Num;
+    type Item: SearchNode;
 
     fn total_estimated(&self) -> Self::Cost;
+    fn get(&self) -> &Self::Item;
 }
 
-pub struct AStarQueue<C: Num+Ord, T: AStarNode<Cost=C>> {
-    queue: PriorityQueue<T, Reverse<C>>,
+pub struct AStarQueue<C: Num+Ord, T: SearchNode, A: AStarNode<Cost=C, Item=T>> {
+    queue: PriorityQueue<A, Reverse<C>>,
     parents: ParentMap<T>
 }
 
-impl <C: Num+Ord, T: AStarNode<Cost=C>> SearchQueue<T> for AStarQueue<C, T> {
+impl <C: Num+Ord, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> for AStarQueue<C, T, A> {
     fn new() -> Self {
         AStarQueue {queue: PriorityQueue::new(), parents: ParentMap::new()}
     }
 
-    fn enqueue(&mut self, item: &T) {
+    fn enqueue(&mut self, item: &A) {
         let item_priority = Reverse(item.total_estimated());
-        match self.queue.get_priority(item) {
-            None => {
-                self.queue.push(item.clone(), item_priority);
-                self.parents.add(item.clone());
-            },
+        if match self.queue.get_priority(item) {
+            None => {self.queue.push(item.clone(), item_priority); true},
             Some(old_priority) => {
-                if item_priority > *old_priority {
+                let changing = item_priority > *old_priority;
+                if changing {
                     self.queue.change_priority(item, item_priority);
-                    self.parents.add(item.clone());
                 }
+                changing
             }
+        } {
+            self.parents.add(item.get().clone());
         }
     }
 
-    fn dequeue(&mut self) -> Option<T> {
+    fn dequeue(&mut self) -> Option<A> {
         self.queue.pop().map(|(item, _)| item)
     }
 
@@ -192,8 +194,9 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, S, C>(start_value: &T, add_successors: S) -> SearchResult<AStarQueue<C, T>>
-    where T: AStarNode<Cost=C>, C: Num+Ord, S: FnMut(&T, &mut AStarQueue<C, T>) -> ContinueSearch {
+pub fn best_first_search<T, A, S, C>(start_value: &A, add_successors: S) -> SearchResult<AStarQueue<C, T, A>>
+    where T: SearchNode, A: AStarNode<Cost=C, Item=T>, C: Num+Ord,
+          S: FnMut(&A, &mut AStarQueue<C, T, A>) -> ContinueSearch {
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
