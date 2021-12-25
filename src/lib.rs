@@ -443,7 +443,7 @@ mod tests {
         println!("Search complete.");
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
-            let len = path_back_from(node, &paths_back).len();
+            let len = paths_back.path_back_from(node).len();
             println!("From {:?}: {}", node, len);
             assert!(len - 1 <= max_dist);
         }
@@ -463,8 +463,8 @@ mod tests {
                                      graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n));
                                      ContinueSearch::Yes});
         let parent_map_str = format!("{:?}", parent_map);
-        assert_eq!(parent_map_str.as_str(), r#"{"A": Some("start"), "b": Some("start"), "c": Some("A"), "d": Some("b"), "end": Some("A"), "start": None}"#);
-        let path = path_back_from(&"end".to_string(), &parent_map);
+        assert_eq!(parent_map_str.as_str(), r#"ParentMap { parents: {"start": None, "A": Some("start"), "b": Some("start"), "c": Some("A"), "end": Some("A"), "d": Some("b")}, last_dequeued: None }"#);
+        let path = parent_map.path_back_from(&"end".to_string());
         let path_str = format!("{:?}", path);
         assert_eq!(path_str, r#"["start", "A", "end"]"#);
     }
