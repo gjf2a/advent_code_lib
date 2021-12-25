@@ -62,12 +62,14 @@ impl <C: Num+Ord, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> fo
     fn enqueue(&mut self, item: &A) {
         let item_priority = Reverse(item.total_estimated());
         if match self.queue.get_priority(item) {
-            None => {self.queue.push(item.clone(), item_priority); true},
+            None => {
+                let adding = !self.parents.visited(item.get());
+                if adding {self.queue.push(item.clone(), item_priority);}
+                adding
+            },
             Some(old_priority) => {
                 let changing = item_priority > *old_priority;
-                if changing {
-                    self.queue.change_priority(item, item_priority);
-                }
+                if changing {self.queue.change_priority(item, item_priority);}
                 changing
             }
         } {
