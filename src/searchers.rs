@@ -49,6 +49,10 @@ pub struct AStarCost<N: Priority> {
 }
 
 impl <N: Priority> AStarCost<N> {
+    pub fn new(cost_so_far: N, estimate_to_goal: N) -> Self {
+        AStarCost {cost_so_far, estimate_to_goal}
+    }
+
     pub fn cost_so_far(&self) -> N {self.cost_so_far}
 
     pub fn total_estimate(&self) -> N {self.cost_so_far + self.estimate_to_goal}
