@@ -83,7 +83,7 @@ impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<
                 adding
             },
             Some(old_cost) => {
-                let changing = cost < old_cost;
+                let changing = cost > old_cost;
                 if changing {
                     println!("Changing priority from {:?} to {:?}", old_cost, *cost);
                     self.queue.change_priority(value, *cost);
