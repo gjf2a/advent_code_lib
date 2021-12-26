@@ -1,13 +1,12 @@
 use std::cmp::Ordering;
 use std::hash::Hash;
 use std::ops::Add;
-use std::collections::{BinaryHeap, BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BinaryHeap, BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::{Debug, Display};
 use common_macros::b_tree_set;
 use trait_set::trait_set;
 use derive_getters::Getters;
-use indexmap::{IndexMap, IndexSet};
-use priority_queue::PriorityQueue;
+use indexmap::IndexMap;
 
 // Searchers to provide:
 //
@@ -40,6 +39,53 @@ impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
     fn enqueue(&mut self, item: &T) {self.push(item.clone());}
     fn dequeue(&mut self) -> Option<T> {self.pop()}
     fn len(&self) -> usize {self.len()}
+}
+
+struct VisitTracker<C, T> {
+    visited: HashMap<T, C>
+}
+
+impl <T:SearchNode, C:Priority> VisitTracker<C, T> {
+    fn new() -> Self {
+        VisitTracker {visited: HashMap::new()}
+    }
+
+    fn should_visit(&self, node: &AStarNode<C, T>) -> bool {
+        self.visited.get(&node.item)
+            .map_or(true, |prev_count| node.cost.cost_so_far < *prev_count)
+    }
+
+    fn record_visit(&mut self, node: &AStarNode<C, T>) {
+        self.visited.insert(node.item.clone(), node.cost.cost_so_far.clone());
+    }
+}
+
+pub struct AStarQueue<C: Priority, T: SearchNode> {
+    queue: BinaryHeap<AStarNode<C, T>>,
+    parents: ParentMap<T>,
+    visited: VisitTracker<C, T>
+}
+
+impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T> {
+    fn new() -> Self {
+        AStarQueue {queue: BinaryHeap::new(), parents: ParentMap::new(), visited: VisitTracker::new()}
+    }
+
+    fn enqueue(&mut self, node: &AStarNode<C, T>) {
+        if self.visited.should_visit(node) {
+            self.visited.record_visit(node);
+            self.parents.add(node.item.clone());
+            self.queue.push(node.clone());
+        }
+    }
+
+    fn dequeue(&mut self) -> Option<AStarNode<C, T>> {
+        self.queue.pop()
+    }
+
+    fn len(&self) -> usize {
+        self.queue.len()
+    }
 }
 
 #[derive(Ord, Eq, PartialEq, Copy, Clone, Debug, Hash)]
@@ -83,96 +129,6 @@ impl <C: Priority, T: SearchNode> PartialOrd for AStarNode<C, T> {
 impl <C: Priority, T: SearchNode> Ord for AStarNode<C, T> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.cost.cmp(&other.cost)
-    }
-}
-
-// In the style that Mark Goadrich constructed
-pub struct AStarQueueM<C: Priority, T: SearchNode> {
-    queue: BinaryHeap<AStarNode<C, T>>,
-    visited: IndexSet<T>
-}
-
-impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueueM<C, T> {
-    fn new() -> Self {
-        AStarQueueM {queue: BinaryHeap::new(), visited: IndexSet::new()}
-    }
-
-    fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
-        let (cost, value) = item;
-        if !self.visited.contains(value) {
-            self.queue.push(AStarNode::new(value.clone(), cost.clone()));
-        }
-    }
-
-    fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
-        self.queue.pop().map(|node| {
-            self.visited.insert(node.item.clone());
-            (node.cost, node.item)
-        })
-    }
-
-    fn len(&self) -> usize {
-        self.queue.len()
-    }
-}
-
-pub struct AStarQueue<C: Priority, T: SearchNode> {
-    queue: PriorityQueue<T, AStarCost<C>>,
-    visited: IndexSet<T>
-}
-
-impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<C, T> {
-    fn new() -> Self {
-        AStarQueue {queue: PriorityQueue::new(), visited: IndexSet::new()}
-    }
-
-    fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
-        let (cost, value) = item;
-        match self.queue.get_priority(value) {
-            None => {if !self.visited.contains(value) {self.queue.push(value.clone(), *cost);}},
-            Some(old_cost) => {if cost > old_cost {self.queue.change_priority(value, *cost);}}
-        }
-    }
-
-    fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
-        self.queue.pop().map(|(item, cost)| {self.visited.insert(item.clone()); (cost, item)})
-    }
-
-    fn len(&self) -> usize {
-        self.queue.len()
-    }
-}
-
-pub struct AStarQueueShift<C: Priority, T: SearchNode> {
-    queue: PriorityQueue<T, AStarCost<C>>,
-    parents: ParentMap<T>
-}
-
-impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueueShift<C, T> {
-    fn new() -> Self {
-        AStarQueueShift {queue: PriorityQueue::new(), parents: ParentMap::new()}
-    }
-
-    fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
-        let (cost, value) = item;
-        if match self.queue.get_priority(value) {
-            None => {self.queue.push(value.clone(), *cost); true},
-            Some(old_cost) => {
-                let changing = cost > old_cost;
-                if changing {self.queue.change_priority(value, *cost);}
-                changing
-            }
-        } {
-            self.parents.add(value.clone());
-        }
-    }
-
-    fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
-        self.queue.pop().map(|(item, cost)| (cost, item))
-    }
-
-    fn len(&self) -> usize {
-        self.queue.len()
     }
 }
 
@@ -286,23 +242,9 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueue<C, T>>
-    where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueue<C, T>) -> ContinueSearch {
+pub fn best_first_search<T, S, C>(start_value: &AStarNode<C, T>, add_successors: S) -> SearchResult<AStarQueue<C, T>>
+    where T: SearchNode, C: Priority, S: FnMut(&AStarNode<C, T>, &mut AStarQueue<C, T>) -> ContinueSearch {
     let mut open_list = AStarQueue::new();
-    open_list.enqueue(start_value);
-    search(open_list, add_successors)
-}
-
-pub fn best_first_search_shift<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueueShift<C, T>>
-    where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueueShift<C, T>) -> ContinueSearch {
-    let mut open_list = AStarQueueShift::new();
-    open_list.enqueue(start_value);
-    search(open_list, add_successors)
-}
-
-pub fn best_first_search_m<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueueM<C, T>>
-    where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueueM<C, T>) -> ContinueSearch {
-    let mut open_list = AStarQueueM::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
 }

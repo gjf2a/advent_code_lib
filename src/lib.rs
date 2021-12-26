@@ -1,5 +1,6 @@
 mod searchers;
 mod position;
+mod failed_a_star;
 
 use std::slice::Iter;
 use std::{io, fs, env};
