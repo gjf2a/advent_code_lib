@@ -286,9 +286,23 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueueShift<C, T>>
+pub fn best_first_search<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueue<C, T>>
+    where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueue<C, T>) -> ContinueSearch {
+    let mut open_list = AStarQueue::new();
+    open_list.enqueue(start_value);
+    search(open_list, add_successors)
+}
+
+pub fn best_first_search_shift<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueueShift<C, T>>
     where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueueShift<C, T>) -> ContinueSearch {
     let mut open_list = AStarQueueShift::new();
+    open_list.enqueue(start_value);
+    search(open_list, add_successors)
+}
+
+pub fn best_first_search_m<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueueM<C, T>>
+    where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueueM<C, T>) -> ContinueSearch {
+    let mut open_list = AStarQueueM::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
 }
