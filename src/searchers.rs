@@ -45,23 +45,24 @@ pub trait AStarNode: SearchNode {
     type Cost: Num;
     type Item: SearchNode;
 
+    fn new(item: Self::Item, cost: Self::Cost) -> Self;
     fn total_estimated(&self) -> Self::Cost;
     fn get(&self) -> &Self::Item;
 }
 
-pub struct AStarQueue<C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> {
+pub struct AStarQueue<C: Num+Ord+Display, T: SearchNode> {
     queue: PriorityQueue<T, Reverse<C>>,
     parents: ParentMap<T>
 }
 
-impl <C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> for AStarQueue<C, T, A> {
+impl <C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> for AStarQueue<C, T> {
     fn new() -> Self {
         AStarQueue {queue: PriorityQueue::new(), parents: ParentMap::new()}
     }
 
     fn enqueue(&mut self, item: &A) {
         let item_priority = Reverse(item.total_estimated());
-        if match self.queue.get_priority(item) {
+        if match self.queue.get_priority(item.get()) {
             None => {
                 let adding = !self.parents.visited(item.get());
                 if adding {self.queue.push(item.get().clone(), item_priority);}
@@ -81,7 +82,7 @@ impl <C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQue
     }
 
     fn dequeue(&mut self) -> Option<A> {
-        self.queue.pop().map(|(item, _)| item)
+        self.queue.pop().map(|(item, cost)| A::new(item, cost.0))
     }
 
     fn len(&self) -> usize {
@@ -199,9 +200,9 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, A, S, C>(start_value: &A, add_successors: S) -> SearchResult<AStarQueue<C, T, A>>
+pub fn best_first_search<T, A, S, C>(start_value: &A, add_successors: S) -> SearchResult<AStarQueue<C, T>>
     where T: SearchNode, A: AStarNode<Cost=C, Item=T>, C: Num+Ord+Display,
-          S: FnMut(&A, &mut AStarQueue<C, T, A>) -> ContinueSearch {
+          S: FnMut(&A, &mut AStarQueue<C, T>) -> ContinueSearch {
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
