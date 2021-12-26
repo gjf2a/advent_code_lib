@@ -88,7 +88,7 @@ impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T
     }
 }
 
-#[derive(Ord, Eq, PartialEq, Copy, Clone, Debug, Hash)]
+#[derive(Eq, PartialEq, Copy, Clone, Debug, Hash)]
 pub struct AStarCost<N: Priority> {
     cost_so_far: N,
     estimate_to_goal: N
@@ -107,6 +107,12 @@ impl <N: Priority> AStarCost<N> {
 impl <N: Priority> PartialOrd for AStarCost<N> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.total_estimate().partial_cmp(&other.total_estimate()).map(|ord| ord.reverse())
+    }
+}
+
+impl <N: Priority> Ord for AStarCost<N> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 
@@ -130,7 +136,7 @@ impl <C: Priority, T: SearchNode> PartialOrd for AStarNode<C, T> {
 
 impl <C: Priority, T: SearchNode> Ord for AStarNode<C, T> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.cost.cmp(&other.cost)
+        self.partial_cmp(other).unwrap()
     }
 }
 
