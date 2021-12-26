@@ -74,7 +74,6 @@ impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T
     fn enqueue(&mut self, node: &AStarNode<C, T>) {
         if self.visited.should_visit(node) {
             self.visited.record_visit(node);
-            println!("Adding {:?}", node);
             self.parents.add(node.item.clone());
             self.queue.push(node.clone());
         }
@@ -127,6 +126,8 @@ impl <C: Priority, T: SearchNode> AStarNode<C, T> {
     pub fn new(item: T, cost: AStarCost<C>) -> Self { AStarNode {item, cost}}
 
     pub fn cost_so_far(&self) -> C {self.cost.cost_so_far}
+
+    pub fn item(&self) -> &T {&self.item}
 }
 
 impl <C: Priority, T: SearchNode> PartialOrd for AStarNode<C, T> {
