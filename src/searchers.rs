@@ -52,11 +52,11 @@ impl <T:SearchNode, C:Priority> VisitTracker<C, T> {
 
     fn should_visit(&self, node: &AStarNode<C, T>) -> bool {
         self.visited.get(&node.item)
-            .map_or(true, |prev_count| node.cost.cost_so_far > *prev_count)
+            .map_or(true, |prev_count| node.cost_so_far() < *prev_count)
     }
 
     fn record_visit(&mut self, node: &AStarNode<C, T>) {
-        self.visited.insert(node.item.clone(), node.cost.cost_so_far.clone());
+        self.visited.insert(node.item.clone(), node.cost_so_far());
     }
 }
 
@@ -74,6 +74,7 @@ impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T
     fn enqueue(&mut self, node: &AStarNode<C, T>) {
         if self.visited.should_visit(node) {
             self.visited.record_visit(node);
+            println!("Adding {:?}", node);
             self.parents.add(node.item.clone());
             self.queue.push(node.clone());
         }
