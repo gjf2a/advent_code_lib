@@ -106,7 +106,7 @@ impl <N: Priority> AStarCost<N> {
 
 impl <N: Priority> PartialOrd for AStarCost<N> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.total_estimate().cmp(&other.total_estimate()).reverse())
+        self.total_estimate().partial_cmp(&other.total_estimate()).map(|ord| ord.reverse())
     }
 }
 
