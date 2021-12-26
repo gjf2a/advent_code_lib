@@ -1,7 +1,7 @@
 use std::cmp::Reverse;
 use std::hash::Hash;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use common_macros::b_tree_set;
 use trait_set::trait_set;
 use derive_getters::Getters;
@@ -49,12 +49,12 @@ pub trait AStarNode: SearchNode {
     fn get(&self) -> &Self::Item;
 }
 
-pub struct AStarQueue<C: Num+Ord, T: SearchNode, A: AStarNode<Cost=C, Item=T>> {
+pub struct AStarQueue<C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> {
     queue: PriorityQueue<A, Reverse<C>>,
     parents: ParentMap<T>
 }
 
-impl <C: Num+Ord, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> for AStarQueue<C, T, A> {
+impl <C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> for AStarQueue<C, T, A> {
     fn new() -> Self {
         AStarQueue {queue: PriorityQueue::new(), parents: ParentMap::new()}
     }
@@ -69,7 +69,10 @@ impl <C: Num+Ord, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQueue<A> fo
             },
             Some(old_priority) => {
                 let changing = item_priority > *old_priority;
-                if changing {self.queue.change_priority(item, item_priority);}
+                if changing {
+                    println!("Changing priority from {} to {}", old_priority.0, item_priority.0);
+                    self.queue.change_priority(item, item_priority);
+                }
                 changing
             }
         } {
@@ -197,7 +200,7 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
 }
 
 pub fn best_first_search<T, A, S, C>(start_value: &A, add_successors: S) -> SearchResult<AStarQueue<C, T, A>>
-    where T: SearchNode, A: AStarNode<Cost=C, Item=T>, C: Num+Ord,
+    where T: SearchNode, A: AStarNode<Cost=C, Item=T>, C: Num+Ord+Display,
           S: FnMut(&A, &mut AStarQueue<C, T, A>) -> ContinueSearch {
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
