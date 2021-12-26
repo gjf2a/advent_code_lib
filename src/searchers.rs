@@ -63,12 +63,13 @@ impl <T:SearchNode, C:Priority> VisitTracker<C, T> {
 pub struct AStarQueue<C: Priority, T: SearchNode> {
     queue: BinaryHeap<AStarNode<C, T>>,
     parents: ParentMap<T>,
-    visited: VisitTracker<C, T>
+    visited: VisitTracker<C, T>,
+    last_cost: Option<C>
 }
 
 impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T> {
     fn new() -> Self {
-        AStarQueue {queue: BinaryHeap::new(), parents: ParentMap::new(), visited: VisitTracker::new()}
+        AStarQueue {queue: BinaryHeap::new(), parents: ParentMap::new(), visited: VisitTracker::new(), last_cost: None}
     }
 
     fn enqueue(&mut self, node: &AStarNode<C, T>) {
@@ -80,7 +81,11 @@ impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T
     }
 
     fn dequeue(&mut self) -> Option<AStarNode<C, T>> {
-        self.queue.pop()
+        let result = self.queue.pop();
+        if let Some(cost) = &result {
+            self.last_cost = Some(cost.cost_so_far());
+        }
+        result
     }
 
     fn len(&self) -> usize {
@@ -176,6 +181,8 @@ impl <T:SearchNode> ParentMap<T> {
     pub fn set_last_dequeued(&mut self, item: Option<T>) {
         self.last_dequeued = item;
     }
+
+    pub fn get_last_dequeued(&self) -> &Option<T> {&self.last_dequeued}
 }
 
 #[derive(Debug, Clone)]
@@ -257,6 +264,17 @@ pub fn best_first_search<T, S, C>(start_value: &AStarNode<C, T>, add_successors:
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
+}
+
+impl <C: Priority, T: SearchNode> SearchResult<AStarQueue<C, T>> {
+    pub fn cost(&self) -> Option<C> {
+        self.open_list.last_cost
+    }
+
+    pub fn path(&self) -> Option<VecDeque<T>> {
+        self.open_list.parents.get_last_dequeued().as_ref()
+            .map(|last| self.open_list.parents.path_back_from(last))
+    }
 }
 
 pub fn depth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMap<T>
