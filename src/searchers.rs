@@ -6,7 +6,7 @@ use std::fmt::{Debug, Display};
 use common_macros::b_tree_set;
 use trait_set::trait_set;
 use derive_getters::Getters;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use priority_queue::PriorityQueue;
 
 // Searchers to provide:
@@ -66,12 +66,13 @@ impl <N: Priority> PartialOrd for AStarCost<N> {
 
 pub struct AStarQueue<C: Priority, T: SearchNode> {
     queue: PriorityQueue<T, AStarCost<C>>,
-    parents: ParentMap<T>
+    parents: ParentMap<T>,
+    dequeued: IndexSet<T>
 }
 
 impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<C, T> {
     fn new() -> Self {
-        AStarQueue {queue: PriorityQueue::new(), parents: ParentMap::new()}
+        AStarQueue {queue: PriorityQueue::new(), parents: ParentMap::new(), dequeued: IndexSet::new()}
     }
 
     fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
@@ -89,7 +90,7 @@ impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<
     }
 
     fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
-        self.queue.pop().filter(|(item, _)| !self.parents.visited(item)).map(|(item, cost)| (cost, item))
+        self.queue.pop().filter(|(item, _)| !self.dequeued.contains(item)).map(|(item, cost)| {self.dequeued.insert(item.clone()); (cost, item)})
     }
 
     fn len(&self) -> usize {
