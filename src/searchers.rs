@@ -80,10 +80,7 @@ impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<
             None => {self.queue.push(value.clone(), *cost); true},
             Some(old_cost) => {
                 let changing = cost > old_cost;
-                if changing {
-                    println!("Changing priority from {:?} to {:?}", old_cost, *cost);
-                    self.queue.change_priority(value, *cost);
-                }
+                if changing {self.queue.change_priority(value, *cost);}
                 changing
             }
         } {
@@ -92,7 +89,7 @@ impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<
     }
 
     fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
-        self.queue.pop().map(|(item, cost)| (cost, item))
+        self.queue.pop().filter(|(item, _)| !self.parents.visited(item)).map(|(item, cost)| (cost, item))
     }
 
     fn len(&self) -> usize {
