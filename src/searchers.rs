@@ -118,6 +118,8 @@ pub struct AStarNode<C: Priority, T: SearchNode> {
 
 impl <C: Priority, T: SearchNode> AStarNode<C, T> {
     pub fn new(item: T, cost: AStarCost<C>) -> Self { AStarNode {item, cost}}
+
+    pub fn cost_so_far(&self) -> C {self.cost.cost_so_far}
 }
 
 impl <C: Priority, T: SearchNode> PartialOrd for AStarNode<C, T> {
