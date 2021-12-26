@@ -84,8 +84,9 @@ impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T
 
     fn dequeue(&mut self) -> Option<AStarNode<C, T>> {
         let result = self.queue.pop();
-        if let Some(cost) = &result {
-            self.last_cost = Some(cost.cost_so_far());
+        if let Some(node) = &result {
+            self.last_cost = Some(node.cost_so_far());
+            self.parents.set_last_dequeued(Some(node.item().clone()));
         }
         result
     }
@@ -181,7 +182,9 @@ impl <T:SearchNode> ParentMap<T> {
     }
 
     pub fn set_last_dequeued(&mut self, item: Option<T>) {
+        if item.is_some() {
             self.last_dequeued = item;
+        }
     }
 
     pub fn get_last_dequeued(&self) -> &Option<T> {&self.last_dequeued}
