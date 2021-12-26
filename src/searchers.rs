@@ -49,9 +49,9 @@ pub struct AStarCost<N: Priority> {
 }
 
 impl <N: Priority> AStarCost<N> {
-    fn total_estimate(&self) -> N {
-        self.cost_so_far + self.estimate_to_goal
-    }
+    pub fn cost_so_far(&self) -> N {self.cost_so_far}
+
+    pub fn total_estimate(&self) -> N {self.cost_so_far + self.estimate_to_goal}
 }
 
 impl <N: Priority> PartialOrd for AStarCost<N> {
