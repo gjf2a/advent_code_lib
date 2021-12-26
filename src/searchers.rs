@@ -41,6 +41,7 @@ impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
     fn len(&self) -> usize {self.len()}
 }
 
+#[derive(Debug, Clone)]
 struct VisitTracker<C, T> {
     visited: HashMap<T, C>
 }
@@ -60,6 +61,7 @@ impl <T:SearchNode, C:Priority> VisitTracker<C, T> {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct AStarQueue<C: Priority, T: SearchNode> {
     queue: BinaryHeap<AStarNode<C, T>>,
     parents: ParentMap<T>,
