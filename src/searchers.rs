@@ -77,11 +77,7 @@ impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<
     fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
         let (cost, value) = item;
         if match self.queue.get_priority(value) {
-            None => {
-                let adding = !self.parents.visited(value);
-                if adding {self.queue.push(value.clone(), *cost);}
-                adding
-            },
+            None => {self.queue.push(value.clone(), *cost); true},
             Some(old_cost) => {
                 let changing = cost > old_cost;
                 if changing {
