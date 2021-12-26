@@ -179,7 +179,9 @@ impl <T:SearchNode> ParentMap<T> {
     }
 
     pub fn set_last_dequeued(&mut self, item: Option<T>) {
-        self.last_dequeued = item;
+        if item.is_some() {
+            self.last_dequeued = item;
+        }
     }
 
     pub fn get_last_dequeued(&self) -> &Option<T> {&self.last_dequeued}

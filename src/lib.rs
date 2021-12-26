@@ -464,7 +464,7 @@ mod tests {
                                      graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n));
                                      ContinueSearch::Yes});
         let parent_map_str = format!("{:?}", parent_map);
-        assert_eq!(parent_map_str.as_str(), r#"ParentMap { parents: {"start": None, "A": Some("start"), "b": Some("start"), "c": Some("A"), "end": Some("A"), "d": Some("b")}, last_dequeued: None }"#);
+        assert_eq!(parent_map_str.as_str(), r#"ParentMap { parents: {"start": None, "A": Some("start"), "b": Some("start"), "c": Some("A"), "end": Some("A"), "d": Some("b")}, last_dequeued: Some("d") }"#);
         let path = parent_map.path_back_from(&"end".to_string());
         let path_str = format!("{:?}", path);
         assert_eq!(path_str, r#"["start", "A", "end"]"#);
