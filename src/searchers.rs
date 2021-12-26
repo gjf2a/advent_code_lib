@@ -52,7 +52,7 @@ impl <T:SearchNode, C:Priority> VisitTracker<C, T> {
 
     fn should_visit(&self, node: &AStarNode<C, T>) -> bool {
         self.visited.get(&node.item)
-            .map_or(true, |prev_count| node.cost.cost_so_far < *prev_count)
+            .map_or(true, |prev_count| node.cost.cost_so_far > *prev_count)
     }
 
     fn record_visit(&mut self, node: &AStarNode<C, T>) {
