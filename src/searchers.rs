@@ -116,7 +116,7 @@ impl <N: Priority> Ord for AStarCost<N> {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct AStarNode<C: Priority, T: SearchNode> {
     item: T,
     cost: AStarCost<C>
