@@ -1,12 +1,12 @@
-use std::cmp::Reverse;
+use std::cmp::Ordering;
 use std::hash::Hash;
+use std::ops::Add;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::{Debug, Display};
 use common_macros::b_tree_set;
 use trait_set::trait_set;
 use derive_getters::Getters;
 use indexmap::IndexMap;
-use num::Num;
 use priority_queue::PriorityQueue;
 
 // Searchers to provide:
@@ -18,7 +18,7 @@ use priority_queue::PriorityQueue;
 
 trait_set! {
     pub trait SearchNode = Eq + Clone + Debug + Hash;
-    pub trait Priority = Num + Ord + Display + Copy + Clone;
+    pub trait Priority = Eq + PartialEq + Add<Output=Self> + Ord + PartialOrd + Display + Copy + Clone + Debug;
 }
 
 pub trait SearchQueue<T> {
@@ -42,30 +42,47 @@ impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
     fn len(&self) -> usize {self.len()}
 }
 
+#[derive(Ord, Eq, PartialEq, Copy, Clone, Debug)]
+pub struct AStarCost<N: Priority> {
+    cost_so_far: N,
+    estimate_to_goal: N
+}
+
+impl <N: Priority> AStarCost<N> {
+    fn total_estimate(&self) -> N {
+        self.cost_so_far + self.estimate_to_goal
+    }
+}
+
+impl <N: Priority> PartialOrd for AStarCost<N> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.total_estimate().cmp(&other.total_estimate()).reverse())
+    }
+}
+
 pub struct AStarQueue<C: Priority, T: SearchNode> {
-    queue: PriorityQueue<T, Reverse<C>>,
+    queue: PriorityQueue<T, AStarCost<C>>,
     parents: ParentMap<T>
 }
 
-impl <C: Priority, T: SearchNode> SearchQueue<(C, T)> for AStarQueue<C, T> {
+impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<C, T> {
     fn new() -> Self {
         AStarQueue {queue: PriorityQueue::new(), parents: ParentMap::new()}
     }
 
-    fn enqueue(&mut self, item: &(C, T)) {
+    fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
         let (cost, value) = item;
-        let item_priority = Reverse(*cost);
         if match self.queue.get_priority(value) {
             None => {
                 let adding = !self.parents.visited(value);
-                if adding {self.queue.push(value.clone(), item_priority);}
+                if adding {self.queue.push(value.clone(), *cost);}
                 adding
             },
-            Some(old_priority) => {
-                let changing = item_priority > *old_priority;
+            Some(old_cost) => {
+                let changing = cost < old_cost;
                 if changing {
-                    println!("Changing priority from {} to {}", old_priority.0, item_priority.0);
-                    self.queue.change_priority(value, item_priority);
+                    println!("Changing priority from {:?} to {:?}", old_cost, *cost);
+                    self.queue.change_priority(value, *cost);
                 }
                 changing
             }
@@ -74,8 +91,8 @@ impl <C: Priority, T: SearchNode> SearchQueue<(C, T)> for AStarQueue<C, T> {
         }
     }
 
-    fn dequeue(&mut self) -> Option<(C, T)> {
-        self.queue.pop().map(|(item, cost)| (cost.0, item))
+    fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
+        self.queue.pop().map(|(item, cost)| (cost, item))
     }
 
     fn len(&self) -> usize {
@@ -193,8 +210,8 @@ pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMa
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, S, C>(start_value: &(C, T), add_successors: S) -> SearchResult<AStarQueue<C, T>>
-    where T: SearchNode, C: Priority, S: FnMut(&(C, T), &mut AStarQueue<C, T>) -> ContinueSearch {
+pub fn best_first_search<T, S, C>(start_value: &(AStarCost<C>, T), add_successors: S) -> SearchResult<AStarQueue<C, T>>
+    where T: SearchNode, C: Priority, S: FnMut(&(AStarCost<C>, T), &mut AStarQueue<C, T>) -> ContinueSearch {
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
