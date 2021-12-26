@@ -50,7 +50,7 @@ pub trait AStarNode: SearchNode {
 }
 
 pub struct AStarQueue<C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> {
-    queue: PriorityQueue<A, Reverse<C>>,
+    queue: PriorityQueue<T, Reverse<C>>,
     parents: ParentMap<T>
 }
 
@@ -64,14 +64,14 @@ impl <C: Num+Ord+Display, T: SearchNode, A: AStarNode<Cost=C, Item=T>> SearchQue
         if match self.queue.get_priority(item) {
             None => {
                 let adding = !self.parents.visited(item.get());
-                if adding {self.queue.push(item.clone(), item_priority);}
+                if adding {self.queue.push(item.get().clone(), item_priority);}
                 adding
             },
             Some(old_priority) => {
                 let changing = item_priority > *old_priority;
                 if changing {
                     println!("Changing priority from {} to {}", old_priority.0, item_priority.0);
-                    self.queue.change_priority(item, item_priority);
+                    self.queue.change_priority(item.get(), item_priority);
                 }
                 changing
             }
