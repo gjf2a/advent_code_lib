@@ -135,6 +135,8 @@ impl <C: Priority, T: SearchNode> AStarNode<C, T> {
 
     pub fn cost_so_far(&self) -> C {self.cost.cost_so_far}
 
+    pub fn total_estimate(&self) -> C {self.cost.total_estimate()}
+
     pub fn item(&self) -> &T {&self.item}
 }
 
