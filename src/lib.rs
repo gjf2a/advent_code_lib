@@ -26,6 +26,16 @@ pub fn advent_main(other_args: &[&str], optional_args: &[&str],
     }
 }
 
+pub fn simpler_main(code: fn(&str) -> anyhow::Result<()>) -> anyhow::Result<()> {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        println!("Usage: {} filename", args[0]);
+        Ok(())
+    } else {
+        code(args[1].as_str())
+    }
+}
+
 pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
 }
