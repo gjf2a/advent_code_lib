@@ -186,7 +186,7 @@ pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) 
 pub trait DirType {
     fn offset(&self) -> (isize,isize);
 
-    fn next(&self, p: Position) -> Position {
+    fn next_position(&self, p: Position) -> Position {
         p + Position::from(self.offset())
     }
 

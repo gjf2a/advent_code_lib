@@ -400,9 +400,9 @@ mod tests {
     fn test_manhattan() {
         let p = Position::new();
         for (d, (x, y)) in all::<ManhattanDir>().zip([(0, -1), (1, 0), (0, 1), (-1, 0)].iter()) {
-            let next = d.next(p);
+            let next = d.next_position(p);
             assert_eq!(next, Position::from((*x, *y)));
-            let inverse = d.inverse().next(next);
+            let inverse = d.inverse().next_position(next);
             assert_eq!(inverse, p);
         }
 
