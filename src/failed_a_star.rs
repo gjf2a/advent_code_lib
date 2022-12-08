@@ -1,7 +1,10 @@
 //use std::collections::BinaryHeap;
+use crate::{
+    AStarCost, /*AStarNode, ContinueSearch, search, SearchResult, */ ParentMap, Priority,
+    SearchNode, SearchQueue,
+};
 use indexmap::IndexSet;
 use priority_queue::PriorityQueue;
-use crate::{AStarCost, Priority, SearchNode, /*AStarNode, ContinueSearch, search, SearchResult, */ParentMap, SearchQueue};
 
 // This is an archive of failed A* implementations.
 // These are flawed in a couple of ways:
@@ -52,24 +55,38 @@ pub fn best_first_search_m<T, S, C>(start_value: &(AStarCost<C>, T), add_success
 
 pub struct AStarQueue<C: Priority, T: SearchNode> {
     queue: PriorityQueue<T, AStarCost<C>>,
-    visited: IndexSet<T>
+    visited: IndexSet<T>,
 }
 
-impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<C, T> {
+impl<C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<C, T> {
     fn new() -> Self {
-        AStarQueue {queue: PriorityQueue::new(), visited: IndexSet::new()}
+        AStarQueue {
+            queue: PriorityQueue::new(),
+            visited: IndexSet::new(),
+        }
     }
 
     fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
         let (cost, value) = item;
         match self.queue.get_priority(value) {
-            None => {if !self.visited.contains(value) {self.queue.push(value.clone(), *cost);}},
-            Some(old_cost) => {if cost > old_cost {self.queue.change_priority(value, *cost);}}
+            None => {
+                if !self.visited.contains(value) {
+                    self.queue.push(value.clone(), *cost);
+                }
+            }
+            Some(old_cost) => {
+                if cost > old_cost {
+                    self.queue.change_priority(value, *cost);
+                }
+            }
         }
     }
 
     fn dequeue(&mut self) -> Option<(AStarCost<C>, T)> {
-        self.queue.pop().map(|(item, cost)| {self.visited.insert(item.clone()); (cost, item)})
+        self.queue.pop().map(|(item, cost)| {
+            self.visited.insert(item.clone());
+            (cost, item)
+        })
     }
 
     fn len(&self) -> usize {
@@ -79,21 +96,29 @@ impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueue<
 
 pub struct AStarQueueShift<C: Priority, T: SearchNode> {
     queue: PriorityQueue<T, AStarCost<C>>,
-    parents: ParentMap<T>
+    parents: ParentMap<T>,
 }
 
-impl <C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueueShift<C, T> {
+impl<C: Priority, T: SearchNode> SearchQueue<(AStarCost<C>, T)> for AStarQueueShift<C, T> {
     fn new() -> Self {
-        AStarQueueShift {queue: PriorityQueue::new(), parents: ParentMap::new()}
+        AStarQueueShift {
+            queue: PriorityQueue::new(),
+            parents: ParentMap::new(),
+        }
     }
 
     fn enqueue(&mut self, item: &(AStarCost<C>, T)) {
         let (cost, value) = item;
         if match self.queue.get_priority(value) {
-            None => {self.queue.push(value.clone(), *cost); true},
+            None => {
+                self.queue.push(value.clone(), *cost);
+                true
+            }
             Some(old_cost) => {
                 let changing = cost > old_cost;
-                if changing {self.queue.change_priority(value, *cost);}
+                if changing {
+                    self.queue.change_priority(value, *cost);
+                }
                 changing
             }
         } {

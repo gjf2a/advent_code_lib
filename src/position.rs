@@ -1,20 +1,23 @@
-use std::{io, mem};
+use crate::make_io_error;
+use enum_iterator::{all, Sequence};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub};
 use std::str::FromStr;
-use crate::make_io_error;
-use enum_iterator::{Sequence, all};
+use std::{io, mem};
 
-#[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct Position {
     pub row: isize,
-    pub col: isize
+    pub col: isize,
 }
 
 impl Add for Position {
     type Output = Position;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Position {col: self.col + rhs.col, row: self.row + rhs.row}
+        Position {
+            col: self.col + rhs.col,
+            row: self.row + rhs.row,
+        }
     }
 }
 
@@ -22,7 +25,10 @@ impl Sub for Position {
     type Output = Position;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Position {col: self.col - rhs.col, row: self.row - rhs.row}
+        Position {
+            col: self.col - rhs.col,
+            row: self.row - rhs.row,
+        }
     }
 }
 
@@ -30,7 +36,10 @@ impl Mul<isize> for Position {
     type Output = Position;
 
     fn mul(self, rhs: isize) -> Self::Output {
-        Position {col: self.col * rhs, row: self.row * rhs}
+        Position {
+            col: self.col * rhs,
+            row: self.row * rhs,
+        }
     }
 }
 
@@ -51,8 +60,11 @@ impl Position {
         Position::from((0, 0))
     }
 
-    pub fn from(pair: (isize,isize)) -> Self {
-        Position {col: pair.0, row: pair.1}
+    pub fn from(pair: (isize, isize)) -> Self {
+        Position {
+            col: pair.0,
+            row: pair.1,
+        }
     }
 
     pub fn update(&mut self, d: Dir) {
@@ -63,7 +75,7 @@ impl Position {
 
     pub fn updated(&self, d: Dir) -> Self {
         let (nc, nr) = d.neighbor(self.col, self.row);
-        Position {col: nc, row: nr}
+        Position { col: nc, row: nr }
     }
 
     pub fn next_in_grid(&self, width: usize, height: usize) -> Option<Position> {
@@ -73,7 +85,11 @@ impl Position {
             result.col = 0;
             result.row += 1;
         }
-        if result.row < height as isize {Some(result)} else {None}
+        if result.row < height as isize {
+            Some(result)
+        } else {
+            None
+        }
     }
 
     pub fn manhattan_distance(&self, other: Position) -> usize {
@@ -84,11 +100,11 @@ impl Position {
         self.manhattan_distance(other) == 1
     }
 
-    pub fn manhattan_neighbors(&self) -> impl Iterator<Item=Position> + '_ {
+    pub fn manhattan_neighbors(&self) -> impl Iterator<Item = Position> + '_ {
         all::<ManhattanDir>().map(|dir| *self + dir.position_offset())
     }
 
-    pub fn neighbors(&self) -> impl Iterator<Item=Position> + '_ {
+    pub fn neighbors(&self) -> impl Iterator<Item = Position> + '_ {
         all::<Dir>().map(|dir| *self + dir.position_offset())
     }
 }
@@ -102,15 +118,18 @@ impl FromStr for Position {
             let first = chars.next().unwrap();
             let last = chars.last().unwrap();
             if first == '(' && last == ')' {
-                return Position::from_str(&s[1..s.len() - 1])
+                return Position::from_str(&s[1..s.len() - 1]);
             } else {
                 let parts: Vec<_> = s.split(',').collect();
                 if parts.len() == 2 {
-                    return match parts[0].trim().parse::<isize>()
-                        .and_then(|x| parts[1].trim().parse::<isize>().map(|y| (x, y))) {
+                    return match parts[0]
+                        .trim()
+                        .parse::<isize>()
+                        .and_then(|x| parts[1].trim().parse::<isize>().map(|y| (x, y)))
+                    {
                         Ok(pair) => Ok(Position::from(pair)),
-                        Err(e) => make_io_error(e.to_string().as_str())
-                    }
+                        Err(e) => make_io_error(e.to_string().as_str()),
+                    };
                 }
             }
         }
@@ -119,16 +138,24 @@ impl FromStr for Position {
 }
 
 pub struct RowMajorPositionIterator {
-    width: usize, height: usize, next: Option<Position>
+    width: usize,
+    height: usize,
+    next: Option<Position>,
 }
 
 impl RowMajorPositionIterator {
     pub fn new(width: usize, height: usize) -> Self {
-        RowMajorPositionIterator {width, height, next: Some(Position {col: 0, row: 0})}
+        RowMajorPositionIterator {
+            width,
+            height,
+            next: Some(Position { col: 0, row: 0 }),
+        }
     }
 
     pub fn in_bounds(&self) -> bool {
-        self.next.map_or(false, |n| n.col < self.width as isize && n.row < self.height as isize)
+        self.next.map_or(false, |n| {
+            n.col < self.width as isize && n.row < self.height as isize
+        })
     }
 }
 
@@ -136,20 +163,32 @@ impl Iterator for RowMajorPositionIterator {
     type Item = Position;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut future = self.next.and_then(|p| p.next_in_grid(self.width, self.height));
+        let mut future = self
+            .next
+            .and_then(|p| p.next_in_grid(self.width, self.height));
         mem::swap(&mut future, &mut self.next);
         future
     }
 }
 
 pub struct OffsetRowMajorPositionIterator {
-    min_col: isize, max_col: isize, max_row: isize, next: Option<Position>
+    min_col: isize,
+    max_col: isize,
+    max_row: isize,
+    next: Option<Position>,
 }
 
 impl OffsetRowMajorPositionIterator {
     pub fn new(min_col: isize, min_row: isize, max_col: isize, max_row: isize) -> Self {
-        OffsetRowMajorPositionIterator {min_col, max_col, max_row,
-            next: Some(Position {col: min_col, row: min_row})}
+        OffsetRowMajorPositionIterator {
+            min_col,
+            max_col,
+            max_row,
+            next: Some(Position {
+                col: min_col,
+                row: min_row,
+            }),
+        }
     }
 
     fn next_in_grid(&self, p: Position) -> Option<Position> {
@@ -158,7 +197,7 @@ impl OffsetRowMajorPositionIterator {
             updated.col = self.min_col;
             updated.row += 1;
             if updated.row > self.max_row {
-                return None
+                return None;
             }
         }
         Some(updated)
@@ -175,16 +214,14 @@ impl Iterator for OffsetRowMajorPositionIterator {
     }
 }
 
-pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize,usize)->T) -> Vec<Vec<T>> {
+pub fn indices_2d_vec<T>(width: usize, height: usize, func: fn(usize, usize) -> T) -> Vec<Vec<T>> {
     (0..height)
-        .map(|y| (0..width)
-            .map(|x| func(x, y))
-            .collect())
+        .map(|y| (0..width).map(|x| func(x, y)).collect())
         .collect()
 }
 
 pub trait DirType {
-    fn offset(&self) -> (isize,isize);
+    fn offset(&self) -> (isize, isize);
 
     fn next_position(&self, p: Position) -> Position {
         p + Position::from(self.offset())
@@ -194,7 +231,7 @@ pub trait DirType {
         Position::from(self.offset())
     }
 
-    fn neighbor(&self, col: isize, row: isize) -> (isize,isize) {
+    fn neighbor(&self, col: isize, row: isize) -> (isize, isize) {
         let (d_col, d_row) = self.offset();
         (col + d_col, row + d_row)
     }
@@ -204,9 +241,12 @@ pub trait DirType {
     }
 }
 
-#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,Sequence)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Sequence)]
 pub enum ManhattanDir {
-    N, E, S, W
+    N,
+    E,
+    S,
+    W,
 }
 
 impl DirType for ManhattanDir {
@@ -215,7 +255,7 @@ impl DirType for ManhattanDir {
             ManhattanDir::N => (0, -1),
             ManhattanDir::E => (1, 0),
             ManhattanDir::S => (0, 1),
-            ManhattanDir::W => (-1, 0)
+            ManhattanDir::W => (-1, 0),
         }
     }
 }
@@ -226,7 +266,7 @@ impl ManhattanDir {
             ManhattanDir::N => ManhattanDir::S,
             ManhattanDir::S => ManhattanDir::N,
             ManhattanDir::E => ManhattanDir::W,
-            ManhattanDir::W => ManhattanDir::E
+            ManhattanDir::W => ManhattanDir::E,
         }
     }
 
@@ -235,27 +275,34 @@ impl ManhattanDir {
             ManhattanDir::N => ManhattanDir::E,
             ManhattanDir::S => ManhattanDir::W,
             ManhattanDir::E => ManhattanDir::S,
-            ManhattanDir::W => ManhattanDir::N
+            ManhattanDir::W => ManhattanDir::N,
         }
     }
 }
 
-#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,Sequence)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Sequence)]
 pub enum Dir {
-    N, Ne, E, Se, S, Sw, W, Nw
+    N,
+    Ne,
+    E,
+    Se,
+    S,
+    Sw,
+    W,
+    Nw,
 }
 
 impl DirType for Dir {
-    fn offset(&self) -> (isize,isize) {
+    fn offset(&self) -> (isize, isize) {
         match self {
-            Dir::N  => ( 0, -1),
-            Dir::Ne => ( 1, -1),
-            Dir::E  => ( 1,  0),
-            Dir::Se => ( 1,  1),
-            Dir::S  => ( 0,  1),
-            Dir::Sw => (-1,  1),
-            Dir::W  => (-1,  0),
-            Dir::Nw => (-1, -1)
+            Dir::N => (0, -1),
+            Dir::Ne => (1, -1),
+            Dir::E => (1, 0),
+            Dir::Se => (1, 1),
+            Dir::S => (0, 1),
+            Dir::Sw => (-1, 1),
+            Dir::W => (-1, 0),
+            Dir::Nw => (-1, -1),
         }
     }
 }
@@ -270,7 +317,7 @@ impl Dir {
             Dir::S => Dir::Sw,
             Dir::Sw => Dir::W,
             Dir::W => Dir::Nw,
-            Dir::Nw => Dir::N
+            Dir::Nw => Dir::N,
         }
     }
 
@@ -287,6 +334,8 @@ impl Dir {
 
 pub fn normalize_degrees(degrees: isize) -> isize {
     let mut degrees = degrees;
-    while degrees < 0 {degrees += 360;}
+    while degrees < 0 {
+        degrees += 360;
+    }
     degrees % 360
 }

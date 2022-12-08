@@ -1,26 +1,34 @@
-mod searchers;
-mod position;
 mod failed_a_star;
 mod grid;
+mod position;
+mod searchers;
 
-use std::slice::Iter;
-use std::{io, fs, env};
-use std::io::{BufRead, Lines, BufReader};
+use bare_metal_modulo::ModNumC;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::{Debug, Display};
 use std::fs::File;
+use std::io::{BufRead, BufReader, Lines};
+use std::slice::Iter;
 use std::str::FromStr;
-use bare_metal_modulo::ModNumC;
+use std::{env, fs, io};
 
-pub use crate::searchers::*;
-pub use crate::position::*;
 pub use crate::grid::*;
+pub use crate::position::*;
+pub use crate::searchers::*;
 
-pub fn advent_main(other_args: &[&str], optional_args: &[&str],
-                   code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
+pub fn advent_main(
+    other_args: &[&str],
+    optional_args: &[&str],
+    code: fn(Vec<String>) -> io::Result<()>,
+) -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 + other_args.len() {
-        println!("Usage: {} filename {} [{}]", args[0], other_args.join(" "), optional_args.join(" "));
+        println!(
+            "Usage: {} filename {} [{}]",
+            args[0],
+            other_args.join(" "),
+            optional_args.join(" ")
+        );
         Ok(())
     } else {
         code(args)
@@ -41,25 +49,35 @@ pub fn all_lines_wrap(filename: &str) -> io::Result<Lines<BufReader<File>>> {
     Ok(io::BufReader::new(fs::File::open(filename)?).lines())
 }
 
-pub fn all_lines(filename: &str) -> io::Result<impl Iterator<Item=String>> {
+pub fn all_lines(filename: &str) -> io::Result<impl Iterator<Item = String>> {
     Ok(all_lines_wrap(filename)?.map(|line| line.unwrap()))
 }
 
 pub fn first_line_only_numbers<N: FromStr>(filename: &str) -> io::Result<Vec<N>>
-    where <N as FromStr>::Err: Debug {
+where
+    <N as FromStr>::Err: Debug,
+{
     Ok(line2numbers(all_lines(filename)?.next().unwrap().as_str()))
 }
 
-pub fn line2numbers_iter<N: FromStr>(line: &str) -> impl Iterator<Item=N> + '_
-    where <N as FromStr>::Err: Debug {
+pub fn line2numbers_iter<N: FromStr>(line: &str) -> impl Iterator<Item = N> + '_
+where
+    <N as FromStr>::Err: Debug,
+{
     line.split(',').map(|s| s.parse().unwrap())
 }
 
-pub fn line2numbers<N: FromStr>(line: &str) -> Vec<N> where <N as FromStr>::Err: Debug {
+pub fn line2numbers<N: FromStr>(line: &str) -> Vec<N>
+where
+    <N as FromStr>::Err: Debug,
+{
     line2numbers_iter(line).collect::<Vec<N>>()
 }
 
-pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_processor: F) -> io::Result<()> {
+pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(
+    filename: &str,
+    mut line_processor: F,
+) -> io::Result<()> {
     for line in all_lines(filename)? {
         line_processor(line.as_str())?;
     }
@@ -67,59 +85,80 @@ pub fn for_each_line<F: FnMut(&str) -> io::Result<()>>(filename: &str, mut line_
 }
 
 pub fn file2nums(filename: &str) -> io::Result<Vec<isize>> {
-    Ok(all_lines(filename)?.map(|line| line.parse::<isize>().unwrap()).collect())
+    Ok(all_lines(filename)?
+        .map(|line| line.parse::<isize>().unwrap())
+        .collect())
 }
 
-pub fn nums2map(filename: &str) -> io::Result<HashMap<Position, ModNumC<u32, 10> >> {
+pub fn nums2map(filename: &str) -> io::Result<HashMap<Position, ModNumC<u32, 10>>> {
     let mut num_map = HashMap::new();
     for (row, line) in all_lines(filename)?.enumerate() {
         for (col, value) in line.chars().enumerate() {
-            num_map.insert(Position::from((col as isize, row as isize)),
-                           ModNumC::new(value.to_digit(10).unwrap()));
+            num_map.insert(
+                Position::from((col as isize, row as isize)),
+                ModNumC::new(value.to_digit(10).unwrap()),
+            );
         }
     }
     Ok(num_map)
 }
 
-pub fn map_width_height<V>(map: &HashMap<Position,V>) -> (usize, usize) {
+pub fn map_width_height<V>(map: &HashMap<Position, V>) -> (usize, usize) {
     let max = map.keys().max().unwrap();
     let min = map.keys().min().unwrap();
-    ((max.col - min.col + 1) as usize, (max.row - min.row + 1) as usize)
+    (
+        (max.col - min.col + 1) as usize,
+        (max.row - min.row + 1) as usize,
+    )
 }
 
 pub fn pass_counter<F: Fn(&str) -> bool>(filename: &str, passes_check: F) -> io::Result<String> {
     Ok(all_lines(filename)?
         .filter(|line| passes_check(line.as_str()))
-        .count().to_string())
+        .count()
+        .to_string())
 }
 
 pub trait ExNihilo {
     fn create() -> Self;
 }
 
-impl <K:Ord,V> ExNihilo for BTreeMap<K,V> {
-    fn create() -> Self {BTreeMap::new()}
+impl<K: Ord, V> ExNihilo for BTreeMap<K, V> {
+    fn create() -> Self {
+        BTreeMap::new()
+    }
 }
 
-impl <T:Ord> ExNihilo for BTreeSet<T> {
-    fn create() -> Self {BTreeSet::new()}
+impl<T: Ord> ExNihilo for BTreeSet<T> {
+    fn create() -> Self {
+        BTreeSet::new()
+    }
 }
 
-pub struct MultiLineObjects<T: Eq+PartialEq+Clone+ExNihilo> {
+pub struct MultiLineObjects<T: Eq + PartialEq + Clone + ExNihilo> {
     objects: Vec<T>,
-    line_parser: fn(&mut T, &str)
+    line_parser: fn(&mut T, &str),
 }
 
-impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
+impl<T: Eq + PartialEq + Clone + ExNihilo> MultiLineObjects<T> {
     pub fn new(line_parser: fn(&mut T, &str)) -> Self {
-        MultiLineObjects {objects: vec![T::create()], line_parser}
+        MultiLineObjects {
+            objects: vec![T::create()],
+            line_parser,
+        }
     }
 
     pub fn from_file(filename: &str, line_parser: fn(&mut T, &str)) -> io::Result<Self> {
-        Ok(MultiLineObjects::from_iterator(all_lines(filename)?, line_parser))
+        Ok(MultiLineObjects::from_iterator(
+            all_lines(filename)?,
+            line_parser,
+        ))
     }
 
-    pub fn from_iterator<'a, C: IntoIterator<Item=String>>(iter: C, line_parser: fn(&mut T, &str)) -> Self {
+    pub fn from_iterator<'a, C: IntoIterator<Item = String>>(
+        iter: C,
+        line_parser: fn(&mut T, &str),
+    ) -> Self {
         let mut result = MultiLineObjects::new(line_parser);
         for line in iter {
             result.add_line(line.as_str());
@@ -137,16 +176,16 @@ impl <T: Eq+PartialEq+Clone+ExNihilo> MultiLineObjects<T> {
         }
     }
 
-    pub fn objects(&self) -> Vec<T> {self.objects.clone()}
+    pub fn objects(&self) -> Vec<T> {
+        self.objects.clone()
+    }
 
     pub fn iter(&self) -> Iter<T> {
         self.objects.iter()
     }
 
     pub fn count_matching<P: Fn(&T) -> bool>(&self, predicate: P) -> usize {
-        self.iter()
-            .filter(|m| predicate(*m))
-            .count()
+        self.iter().filter(|m| predicate(*m)).count()
     }
 }
 
@@ -168,8 +207,10 @@ pub fn assert_io_error(condition: bool, message: &str) -> io::Result<()> {
 
 pub fn assert_token<T: Copy + Eq + Display>(next_token: Option<T>, target: T) -> io::Result<()> {
     if let Some(token) = next_token {
-        assert_io_error(token == target,
-                        format!("Token '{}' did not match expected '{}'", token, target).as_str())
+        assert_io_error(
+            token == target,
+            format!("Token '{}' did not match expected '{}'", token, target).as_str(),
+        )
     } else {
         make_io_error(format!("Looking for {}, but no tokens left.", target).as_str())
     }
@@ -179,27 +220,30 @@ pub fn assert_token<T: Copy + Eq + Display>(next_token: Option<T>, target: T) ->
 pub struct SingleListNode<T: Clone> {
     value: T,
     addr: usize,
-    next: Option<usize>
+    next: Option<usize>,
 }
 
-impl <T: Clone> SingleListNode<T> {
+impl<T: Clone> SingleListNode<T> {
     pub fn get(&self) -> &T {
         &self.value
     }
 
     pub fn iter<'a>(&self, arena: &'a Arena<T>) -> SingleListIterator<'a, T> {
-        SingleListIterator {pointer: Some(self.addr), arena}
+        SingleListIterator {
+            pointer: Some(self.addr),
+            arena,
+        }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Arena<T: Clone> {
-    memory: Vec<SingleListNode<T>>
+    memory: Vec<SingleListNode<T>>,
 }
 
-impl <T: Clone> Arena<T> {
+impl<T: Clone> Arena<T> {
     pub fn new() -> Self {
-        Arena {memory: Vec::new()}
+        Arena { memory: Vec::new() }
     }
 
     pub fn get(&self, location: usize) -> &SingleListNode<T> {
@@ -212,17 +256,17 @@ impl <T: Clone> Arena<T> {
 
     pub fn alloc(&mut self, value: T, next: Option<usize>) -> usize {
         let addr = self.memory.len();
-        self.memory.push(SingleListNode {value, next, addr} );
+        self.memory.push(SingleListNode { value, next, addr });
         addr
     }
 }
 
 pub struct SingleListIterator<'a, T: Clone> {
     pointer: Option<usize>,
-    arena: &'a Arena<T>
+    arena: &'a Arena<T>,
 }
 
-impl <'a, T: Clone> Iterator for SingleListIterator<'a, T> {
+impl<'a, T: Clone> Iterator for SingleListIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -236,12 +280,17 @@ impl <'a, T: Clone> Iterator for SingleListIterator<'a, T> {
     }
 }
 
-pub fn combinations_of<F:FnMut(&[usize; O]), const O: usize>(inner: usize, func: &mut F) {
+pub fn combinations_of<F: FnMut(&[usize; O]), const O: usize>(inner: usize, func: &mut F) {
     let values = [0; O];
     combo_help(O - 1, inner, &values, func);
 }
 
-fn combo_help<F:FnMut(&[usize; O]), const O: usize>(outer: usize, inner: usize, partial: &[usize; O], func: &mut F) {
+fn combo_help<F: FnMut(&[usize; O]), const O: usize>(
+    outer: usize,
+    inner: usize,
+    partial: &[usize; O],
+    func: &mut F,
+) {
     for j in 0..inner {
         let mut partial = partial.clone();
         partial[outer] = j;
@@ -255,11 +304,11 @@ fn combo_help<F:FnMut(&[usize; O]), const O: usize>(outer: usize, inner: usize, 
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
     use super::*;
-    use std::iter::FromIterator;
     use enum_iterator::all;
     use hash_histogram::HashHistogram;
+    use std::collections::HashSet;
+    use std::iter::FromIterator;
     use Dir::*;
 
     #[test]
@@ -272,7 +321,7 @@ mod tests {
     #[test]
     fn test_one_line_nums() {
         let nums = first_line_only_numbers::<usize>("test_3.txt").unwrap();
-        assert_eq!(nums, vec![16,1,2,0,4,2,7,1,2,14]);
+        assert_eq!(nums, vec![16, 1, 2, 0, 4, 2, 7, 1, 2, 14]);
     }
 
     #[test]
@@ -287,9 +336,11 @@ mod tests {
 
     #[test]
     fn test_multiline() {
-        let objs: MultiLineObjects<BTreeSet<String>> = MultiLineObjects::from_file(
-            "test_2.txt",
-            |set: &mut BTreeSet<String>, line: &str| {set.insert(line.to_owned());}).unwrap();
+        let objs: MultiLineObjects<BTreeSet<String>> =
+            MultiLineObjects::from_file("test_2.txt", |set: &mut BTreeSet<String>, line: &str| {
+                set.insert(line.to_owned());
+            })
+            .unwrap();
         let mut iter = objs.iter();
 
         let obj = iter.next().unwrap();
@@ -310,20 +361,39 @@ mod tests {
 
     #[test]
     fn test_dir() {
-        assert_eq!(all::<Dir>().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
-        assert_eq!(all::<Dir>().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
-                   vec![(4, 3), (5, 3), (5, 4), (5, 5), (4, 5), (3, 5), (3, 4), (3, 3)]);
-        let mut p = Position {col: 3, row: 2};
+        assert_eq!(
+            all::<Dir>().collect::<Vec<Dir>>(),
+            vec![N, Ne, E, Se, S, Sw, W, Nw]
+        );
+        assert_eq!(
+            all::<Dir>()
+                .map(|d| d.neighbor(4, 4))
+                .collect::<Vec<(isize, isize)>>(),
+            vec![
+                (4, 3),
+                (5, 3),
+                (5, 4),
+                (5, 5),
+                (4, 5),
+                (3, 5),
+                (3, 4),
+                (3, 3)
+            ]
+        );
+        let mut p = Position { col: 3, row: 2 };
         p.update(Dir::Nw);
-        assert_eq!(p, Position {col: 2, row: 1});
+        assert_eq!(p, Position { col: 2, row: 1 });
         p.update(Dir::Se);
-        assert_eq!(p, Position {col: 3, row: 2});
-        assert_eq!(p.updated(Dir::Ne), Position {col: 4, row: 1});
+        assert_eq!(p, Position { col: 3, row: 2 });
+        assert_eq!(p.updated(Dir::Ne), Position { col: 4, row: 1 });
 
         let ps: Vec<Position> = RowMajorPositionIterator::new(2, 3).collect();
         let targets = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)];
         assert_eq!(ps.len(), targets.len());
-        assert!((0..targets.len()).all(|i| Position {col: targets[i].0, row: targets[i].1} == ps[i]));
+        assert!((0..targets.len()).all(|i| Position {
+            col: targets[i].0,
+            row: targets[i].1
+        } == ps[i]));
 
         assert_eq!(Dir::N.rotated_degrees(90), Dir::E);
         assert_eq!(Dir::N.rotated_degrees(180), Dir::S);
@@ -342,7 +412,7 @@ mod tests {
             let expect = Position::from((*expect_col, *expect_row));
             assert_eq!(expect, p);
         }
-     }
+    }
 
     #[test]
     fn test_pos_math() {
@@ -362,8 +432,14 @@ mod tests {
 
     #[test]
     fn test_pos_order() {
-        let set: BTreeSet<Position> = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)].iter().map(|p| Position::from(*p)).collect();
-        let seq1: Vec<Position> = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)].iter().map(|p| Position::from(*p)).collect();
+        let set: BTreeSet<Position> = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
+            .iter()
+            .map(|p| Position::from(*p))
+            .collect();
+        let seq1: Vec<Position> = [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)]
+            .iter()
+            .map(|p| Position::from(*p))
+            .collect();
         let seq2: Vec<Position> = set.iter().copied().collect();
         assert_eq!(seq1, seq2);
     }
@@ -375,7 +451,10 @@ mod tests {
                 format!("{},{}", x, y),
                 format!("({},{})", x, y),
                 format!("{}, {}", x, y),
-                format!("({}, {})", x, y)].iter() {
+                format!("({}, {})", x, y),
+            ]
+            .iter()
+            {
                 println!("Testing Position from \"{}\"", s);
                 assert_eq!(Position::from((*x, *y)), s.parse().unwrap());
             }
@@ -392,8 +471,11 @@ mod tests {
 
     #[test]
     fn test_indices_2d() {
-        let v: Vec<Vec<(usize,usize)>> = indices_2d_vec(3, 2, |x, y| (x, y));
-        assert_eq!(v, vec![vec![(0, 0), (1, 0), (2, 0)], vec![(0, 1), (1, 1), (2, 1)]]);
+        let v: Vec<Vec<(usize, usize)>> = indices_2d_vec(3, 2, |x, y| (x, y));
+        assert_eq!(
+            v,
+            vec![vec![(0, 0), (1, 0), (2, 0)], vec![(0, 1), (1, 1), (2, 1)]]
+        );
     }
 
     #[test]
@@ -445,14 +527,15 @@ mod tests {
         let max_dist = 2;
         let start_value = Position::new();
         println!("Starting BFS");
-        let paths_back =
-            breadth_first_search(&start_value, |p, q| {
-                for n in p.manhattan_neighbors()
-                    .filter(|n| n.manhattan_distance(start_value) <= max_dist) {
-                    q.enqueue(&n);
-                }
-                ContinueSearch::Yes
-            });
+        let paths_back = breadth_first_search(&start_value, |p, q| {
+            for n in p
+                .manhattan_neighbors()
+                .filter(|n| n.manhattan_distance(start_value) <= max_dist)
+            {
+                q.enqueue(&n);
+            }
+            ContinueSearch::Yes
+        });
         println!("Search complete.");
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
@@ -465,18 +548,32 @@ mod tests {
     #[test]
     fn graph_test() {
         let mut graph = AdjacencySets::new();
-        for (a, b) in [("start", "A"), ("start", "b"), ("A", "c"), ("A", "b"), ("b", "d"), ("A", "end"), ("b", "end")] {
+        for (a, b) in [
+            ("start", "A"),
+            ("start", "b"),
+            ("A", "c"),
+            ("A", "b"),
+            ("b", "d"),
+            ("A", "end"),
+            ("b", "end"),
+        ] {
             graph.connect2(a, b);
         }
         let keys = graph.keys().collect::<Vec<_>>();
         assert_eq!(keys, vec!["A", "b", "c", "d", "end", "start"]);
-        let parent_map =
-            breadth_first_search(&"start".to_string(),
-                                 |node, q| {
-                                     graph.neighbors_of(node).unwrap().iter().for_each(|n| q.enqueue(n));
-                                     ContinueSearch::Yes});
+        let parent_map = breadth_first_search(&"start".to_string(), |node, q| {
+            graph
+                .neighbors_of(node)
+                .unwrap()
+                .iter()
+                .for_each(|n| q.enqueue(n));
+            ContinueSearch::Yes
+        });
         let parent_map_str = format!("{:?}", parent_map);
-        assert_eq!(parent_map_str.as_str(), r#"ParentMap { parents: {"start": None, "A": Some("start"), "b": Some("start"), "c": Some("A"), "end": Some("A"), "d": Some("b")}, last_dequeued: Some("d") }"#);
+        assert_eq!(
+            parent_map_str.as_str(),
+            r#"ParentMap { parents: {"start": None, "A": Some("start"), "b": Some("start"), "c": Some("A"), "end": Some("A"), "d": Some("b")}, last_dequeued: Some("d") }"#
+        );
         let path = parent_map.path_back_from(&"end".to_string());
         let path_str = format!("{:?}", path);
         assert_eq!(path_str, r#"["start", "A", "end"]"#);
@@ -499,7 +596,13 @@ mod tests {
     #[test]
     fn test_num_map() {
         let map = nums2map("num_grid.txt").unwrap();
-        for (p, value) in [((0, 0), 1), ((9, 0), 2), ((2, 1), 8), ((7, 8), 5), ((8, 7), 3)] {
+        for (p, value) in [
+            ((0, 0), 1),
+            ((9, 0), 2),
+            ((2, 1), 8),
+            ((7, 8), 5),
+            ((8, 7), 3),
+        ] {
             let p = Position::from(p);
             assert_eq!(*map.get(&p).unwrap(), value);
         }
@@ -511,8 +614,24 @@ mod tests {
         combinations_of(6, &mut |arr: &[usize; 3]| {
             roll_counts.bump(&arr.iter().map(|n| *n + 1).sum::<usize>());
         });
-        for (num, count) in [(12, 25), (13, 21), (18, 1), (5, 6), (10, 27), (6, 10), (7, 15),
-            (8, 21), (16, 6), (11, 27), (3, 1), (17, 3), (14, 15), (4, 3), (15, 10), (9, 25)] {
+        for (num, count) in [
+            (12, 25),
+            (13, 21),
+            (18, 1),
+            (5, 6),
+            (10, 27),
+            (6, 10),
+            (7, 15),
+            (8, 21),
+            (16, 6),
+            (11, 27),
+            (3, 1),
+            (17, 3),
+            (14, 15),
+            (4, 3),
+            (15, 10),
+            (9, 25),
+        ] {
             assert_eq!(roll_counts.count(&num), count);
         }
     }

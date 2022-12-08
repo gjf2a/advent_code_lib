@@ -1,12 +1,12 @@
-use std::cmp::Ordering;
-use std::hash::Hash;
-use std::ops::Add;
-use std::collections::{BinaryHeap, BTreeMap, BTreeSet, HashMap, VecDeque};
-use std::fmt::{Debug, Display};
 use common_macros::b_tree_set;
-use trait_set::trait_set;
 use derive_getters::Getters;
 use indexmap::IndexMap;
+use std::cmp::Ordering;
+use std::collections::{BTreeMap, BTreeSet, BinaryHeap, HashMap, VecDeque};
+use std::fmt::{Debug, Display};
+use std::hash::Hash;
+use std::ops::Add;
+use trait_set::trait_set;
 
 // Searchers to provide:
 //
@@ -27,32 +27,51 @@ pub trait SearchQueue<T> {
     fn len(&self) -> usize;
 }
 
-impl <T:Clone+Debug> SearchQueue<T> for VecDeque<T> {
-    fn new() -> Self {VecDeque::new()}
-    fn enqueue(&mut self, item: &T) {self.push_back(item.clone());}
-    fn dequeue(&mut self) -> Option<T> {self.pop_front()}
-    fn len(&self) -> usize {self.len()}
+impl<T: Clone + Debug> SearchQueue<T> for VecDeque<T> {
+    fn new() -> Self {
+        VecDeque::new()
+    }
+    fn enqueue(&mut self, item: &T) {
+        self.push_back(item.clone());
+    }
+    fn dequeue(&mut self) -> Option<T> {
+        self.pop_front()
+    }
+    fn len(&self) -> usize {
+        self.len()
+    }
 }
 
-impl <T:Clone+Debug> SearchQueue<T> for Vec<T> {
-    fn new() -> Self {Vec::new()}
-    fn enqueue(&mut self, item: &T) {self.push(item.clone());}
-    fn dequeue(&mut self) -> Option<T> {self.pop()}
-    fn len(&self) -> usize {self.len()}
+impl<T: Clone + Debug> SearchQueue<T> for Vec<T> {
+    fn new() -> Self {
+        Vec::new()
+    }
+    fn enqueue(&mut self, item: &T) {
+        self.push(item.clone());
+    }
+    fn dequeue(&mut self) -> Option<T> {
+        self.pop()
+    }
+    fn len(&self) -> usize {
+        self.len()
+    }
 }
 
 #[derive(Debug, Clone)]
 struct VisitTracker<C, T> {
-    visited: HashMap<T, C>
+    visited: HashMap<T, C>,
 }
 
-impl <T:SearchNode, C:Priority> VisitTracker<C, T> {
+impl<T: SearchNode, C: Priority> VisitTracker<C, T> {
     fn new() -> Self {
-        VisitTracker {visited: HashMap::new()}
+        VisitTracker {
+            visited: HashMap::new(),
+        }
     }
 
     fn should_visit(&self, node: &AStarNode<C, T>) -> bool {
-        self.visited.get(&node.item)
+        self.visited
+            .get(&node.item)
             .map_or(true, |prev_count| node.cost_so_far() < *prev_count)
     }
 
@@ -66,12 +85,17 @@ pub struct AStarQueue<C: Priority, T: SearchNode> {
     queue: BinaryHeap<AStarNode<C, T>>,
     parents: ParentMap<T>,
     visited: VisitTracker<C, T>,
-    last_cost: Option<C>
+    last_cost: Option<C>,
 }
 
-impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T> {
+impl<T: SearchNode, C: Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T> {
     fn new() -> Self {
-        AStarQueue {queue: BinaryHeap::new(), parents: ParentMap::new(), visited: VisitTracker::new(), last_cost: None}
+        AStarQueue {
+            queue: BinaryHeap::new(),
+            parents: ParentMap::new(),
+            visited: VisitTracker::new(),
+            last_cost: None,
+        }
     }
 
     fn enqueue(&mut self, node: &AStarNode<C, T>) {
@@ -99,26 +123,35 @@ impl <T:SearchNode, C:Priority> SearchQueue<AStarNode<C, T>> for AStarQueue<C, T
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Hash)]
 pub struct AStarCost<N: Priority> {
     cost_so_far: N,
-    estimate_to_goal: N
+    estimate_to_goal: N,
 }
 
-impl <N: Priority> AStarCost<N> {
+impl<N: Priority> AStarCost<N> {
     pub fn new(cost_so_far: N, estimate_to_goal: N) -> Self {
-        AStarCost {cost_so_far, estimate_to_goal}
+        AStarCost {
+            cost_so_far,
+            estimate_to_goal,
+        }
     }
 
-    pub fn cost_so_far(&self) -> N {self.cost_so_far}
+    pub fn cost_so_far(&self) -> N {
+        self.cost_so_far
+    }
 
-    pub fn total_estimate(&self) -> N {self.cost_so_far + self.estimate_to_goal}
+    pub fn total_estimate(&self) -> N {
+        self.cost_so_far + self.estimate_to_goal
+    }
 }
 
-impl <N: Priority> PartialOrd for AStarCost<N> {
+impl<N: Priority> PartialOrd for AStarCost<N> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.total_estimate().partial_cmp(&other.total_estimate()).map(|ord| ord.reverse())
+        self.total_estimate()
+            .partial_cmp(&other.total_estimate())
+            .map(|ord| ord.reverse())
     }
 }
 
-impl <N: Priority> Ord for AStarCost<N> {
+impl<N: Priority> Ord for AStarCost<N> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
@@ -127,26 +160,34 @@ impl <N: Priority> Ord for AStarCost<N> {
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct AStarNode<C: Priority, T: SearchNode> {
     item: T,
-    cost: AStarCost<C>
+    cost: AStarCost<C>,
 }
 
-impl <C: Priority, T: SearchNode> AStarNode<C, T> {
-    pub fn new(item: T, cost: AStarCost<C>) -> Self { AStarNode {item, cost}}
+impl<C: Priority, T: SearchNode> AStarNode<C, T> {
+    pub fn new(item: T, cost: AStarCost<C>) -> Self {
+        AStarNode { item, cost }
+    }
 
-    pub fn cost_so_far(&self) -> C {self.cost.cost_so_far}
+    pub fn cost_so_far(&self) -> C {
+        self.cost.cost_so_far
+    }
 
-    pub fn total_estimate(&self) -> C {self.cost.total_estimate()}
+    pub fn total_estimate(&self) -> C {
+        self.cost.total_estimate()
+    }
 
-    pub fn item(&self) -> &T {&self.item}
+    pub fn item(&self) -> &T {
+        &self.item
+    }
 }
 
-impl <C: Priority, T: SearchNode> PartialOrd for AStarNode<C, T> {
+impl<C: Priority, T: SearchNode> PartialOrd for AStarNode<C, T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.cost.partial_cmp(&other.cost)
     }
 }
 
-impl <C: Priority, T: SearchNode> Ord for AStarNode<C, T> {
+impl<C: Priority, T: SearchNode> Ord for AStarNode<C, T> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
@@ -155,17 +196,24 @@ impl <C: Priority, T: SearchNode> Ord for AStarNode<C, T> {
 #[derive(Debug, Clone)]
 pub struct ParentMap<T: SearchNode> {
     parents: IndexMap<T, Option<T>>,
-    last_dequeued: Option<T>
+    last_dequeued: Option<T>,
 }
 
-impl <T:SearchNode> ParentMap<T> {
+impl<T: SearchNode> ParentMap<T> {
     pub fn new() -> Self {
-        ParentMap {parents: IndexMap::new(), last_dequeued: None}
+        ParentMap {
+            parents: IndexMap::new(),
+            last_dequeued: None,
+        }
     }
 
-    pub fn len(&self) -> usize {self.parents.len()}
+    pub fn len(&self) -> usize {
+        self.parents.len()
+    }
 
-    pub fn keys(&self) -> impl Iterator<Item=&T> {self.parents.keys()}
+    pub fn keys(&self) -> impl Iterator<Item = &T> {
+        self.parents.keys()
+    }
 
     pub fn parent_of(&self, item: &T) -> &Option<T> {
         self.parents.get(item).unwrap_or(&None)
@@ -189,24 +237,33 @@ impl <T:SearchNode> ParentMap<T> {
         }
     }
 
-    pub fn get_last_dequeued(&self) -> &Option<T> {&self.last_dequeued}
+    pub fn get_last_dequeued(&self) -> &Option<T> {
+        &self.last_dequeued
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct ParentMapQueue<T: SearchNode, Q: SearchQueue<T>> {
     queue: Q,
-    parent_map: ParentMap<T>
+    parent_map: ParentMap<T>,
 }
 
-impl <T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
-    pub fn parent_of(&self, item: &T) -> &Option<T> {self.parent_map.parent_of(item)}
+impl<T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
+    pub fn parent_of(&self, item: &T) -> &Option<T> {
+        self.parent_map.parent_of(item)
+    }
 
-    pub fn path_back_from(&self, end: &T) -> VecDeque<T> {self.parent_map.path_back_from(end)}
+    pub fn path_back_from(&self, end: &T) -> VecDeque<T> {
+        self.parent_map.path_back_from(end)
+    }
 }
 
-impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> {
+impl<T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> {
     fn new() -> Self {
-        ParentMapQueue {parent_map: ParentMap::new(), queue: Q::new()}
+        ParentMapQueue {
+            parent_map: ParentMap::new(),
+            queue: Q::new(),
+        }
     }
 
     fn enqueue(&mut self, item: &T) {
@@ -222,23 +279,30 @@ impl <T: SearchNode, Q: SearchQueue<T>> SearchQueue<T> for ParentMapQueue<T, Q> 
         dequeued
     }
 
-    fn len(&self) -> usize {self.queue.len()}
+    fn len(&self) -> usize {
+        self.queue.len()
+    }
 }
 
 #[derive(Clone, Debug, Getters)]
 pub struct SearchResult<Q> {
     enqueued: usize,
     dequeued: usize,
-    open_list: Q
+    open_list: Q,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ContinueSearch {
-    Yes, No
+    Yes,
+    No,
 }
 
 pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<Q>
-    where T: Clone, Q: SearchQueue<T>, S: FnMut(&T, &mut Q) -> ContinueSearch {
+where
+    T: Clone,
+    Q: SearchQueue<T>,
+    S: FnMut(&T, &mut Q) -> ContinueSearch,
+{
     let mut enqueued = open_list.len();
     let mut dequeued = 0;
     loop {
@@ -253,52 +317,74 @@ pub fn search<T, S, Q>(mut open_list: Q, mut add_successors: S) -> SearchResult<
                     break;
                 }
             }
-            None => break
+            None => break,
         }
     }
-    SearchResult {enqueued, dequeued, open_list}
+    SearchResult {
+        enqueued,
+        dequeued,
+        open_list,
+    }
 }
 
-pub fn breadth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMap<T>
-    where T: SearchNode, S: FnMut(&T, &mut ParentMapQueue<T, VecDeque<T>>) -> ContinueSearch {
+pub fn breadth_first_search<T, S>(start_value: &T, add_successors: S) -> ParentMap<T>
+where
+    T: SearchNode,
+    S: FnMut(&T, &mut ParentMapQueue<T, VecDeque<T>>) -> ContinueSearch,
+{
     let mut open_list = ParentMapQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn best_first_search<T, S, C>(start_value: &AStarNode<C, T>, add_successors: S) -> SearchResult<AStarQueue<C, T>>
-    where T: SearchNode, C: Priority, S: FnMut(&AStarNode<C, T>, &mut AStarQueue<C, T>) -> ContinueSearch {
+pub fn best_first_search<T, S, C>(
+    start_value: &AStarNode<C, T>,
+    add_successors: S,
+) -> SearchResult<AStarQueue<C, T>>
+where
+    T: SearchNode,
+    C: Priority,
+    S: FnMut(&AStarNode<C, T>, &mut AStarQueue<C, T>) -> ContinueSearch,
+{
     let mut open_list = AStarQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors)
 }
 
-impl <C: Priority, T: SearchNode> SearchResult<AStarQueue<C, T>> {
+impl<C: Priority, T: SearchNode> SearchResult<AStarQueue<C, T>> {
     pub fn cost(&self) -> Option<C> {
         self.open_list.last_cost
     }
 
     pub fn path(&self) -> Option<VecDeque<T>> {
-        self.open_list.parents.get_last_dequeued().as_ref()
+        self.open_list
+            .parents
+            .get_last_dequeued()
+            .as_ref()
             .map(|last| self.open_list.parents.path_back_from(last))
     }
 }
 
-pub fn depth_first_search<T,S>(start_value: &T, add_successors: S) -> ParentMap<T>
-    where T: SearchNode, S: FnMut(&T, &mut ParentMapQueue<T, Vec<T>>) -> ContinueSearch {
+pub fn depth_first_search<T, S>(start_value: &T, add_successors: S) -> ParentMap<T>
+where
+    T: SearchNode,
+    S: FnMut(&T, &mut ParentMapQueue<T, Vec<T>>) -> ContinueSearch,
+{
     let mut open_list = ParentMapQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T,Option<T>>) -> VecDeque<T> {
+pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T, Option<T>>) -> VecDeque<T> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
         path.push_front(current.clone());
         match parent_map.get(current).unwrap() {
             None => break,
-            Some(parent) => {current = parent;}
+            Some(parent) => {
+                current = parent;
+            }
         }
     }
     path
@@ -306,15 +392,17 @@ pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T,Option<T>>
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct AdjacencySets {
-    graph: BTreeMap<String,BTreeSet<String>>
+    graph: BTreeMap<String, BTreeSet<String>>,
 }
 
 impl AdjacencySets {
     pub fn new() -> Self {
-        AdjacencySets {graph: BTreeMap::new()}
+        AdjacencySets {
+            graph: BTreeMap::new(),
+        }
     }
 
-    pub fn keys(&self) -> impl Iterator<Item=&str> {
+    pub fn keys(&self) -> impl Iterator<Item = &str> {
         self.graph.keys().map(|s| s.as_str())
     }
 
@@ -330,7 +418,8 @@ impl AdjacencySets {
     pub fn connect(&mut self, start: &str, end: &str) {
         match self.graph.get_mut(start) {
             None => {
-                self.graph.insert(start.to_string(), b_tree_set! {end.to_string()});
+                self.graph
+                    .insert(start.to_string(), b_tree_set! {end.to_string()});
             }
             Some(connections) => {
                 connections.insert(end.to_string());
