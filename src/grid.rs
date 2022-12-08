@@ -22,11 +22,16 @@ impl GridWorld {
     pub fn value(&self, p: Position) -> Option<ModNumC<u32, 10>> {
         self.map.get(&p).copied()
     }
+
+    pub fn position_iter(&self) -> RowMajorPositionIterator {
+        RowMajorPositionIterator::new(self.width, self.height)
+    }
 }
+
 
 impl Display for GridWorld {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for p in RowMajorPositionIterator::new(self.width, self.height) {
+        for p in self.position_iter() {
             if p.row > 0 && p.col == 0 {
                 write!(f, "\n")?;
             }
