@@ -40,18 +40,3 @@ impl Display for GridWorld {
         Ok(())
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::GridWorld;
-
-    #[test]
-    pub fn test_read() {
-        const FILENAME: &str = "num_grid.txt";
-        let grid = GridWorld::from_file(FILENAME).unwrap();
-        assert_eq!(grid.width(), 10);
-        assert_eq!(grid.height(), 10);
-        let grid_str = std::fs::read_to_string(FILENAME).unwrap();
-        assert_eq!(grid_str, format!("{}", grid));
-    }
-}

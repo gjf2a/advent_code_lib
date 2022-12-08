@@ -11,7 +11,6 @@ use std::fmt::{Debug, Display};
 use std::fs::File;
 use std::str::FromStr;
 use bare_metal_modulo::ModNumC;
-use enum_iterator::IntoEnumIterator;
 
 pub use crate::searchers::*;
 pub use crate::position::*;
@@ -259,6 +258,7 @@ mod tests {
     use std::collections::HashSet;
     use super::*;
     use std::iter::FromIterator;
+    use enum_iterator::all;
     use hash_histogram::HashHistogram;
     use Dir::*;
 
@@ -310,8 +310,8 @@ mod tests {
 
     #[test]
     fn test_dir() {
-        assert_eq!(Dir::into_enum_iter().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
-        assert_eq!(Dir::into_enum_iter().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
+        assert_eq!(all::<Dir>().collect::<Vec<Dir>>(), vec![N,Ne,E,Se,S,Sw,W,Nw]);
+        assert_eq!(all::<Dir>().map(|d| d.neighbor(4, 4)).collect::<Vec<(isize,isize)>>(),
                    vec![(4, 3), (5, 3), (5, 4), (5, 5), (4, 5), (3, 5), (3, 4), (3, 3)]);
         let mut p = Position {col: 3, row: 2};
         p.update(Dir::Nw);
@@ -399,7 +399,7 @@ mod tests {
     #[test]
     fn test_manhattan() {
         let p = Position::new();
-        for (d, (x, y)) in ManhattanDir::into_enum_iter().zip([(0, -1), (1, 0), (0, 1), (-1, 0)].iter()) {
+        for (d, (x, y)) in all::<ManhattanDir>().zip([(0, -1), (1, 0), (0, 1), (-1, 0)].iter()) {
             let next = d.next(p);
             assert_eq!(next, Position::from((*x, *y)));
             let inverse = d.inverse().next(next);
@@ -407,7 +407,7 @@ mod tests {
         }
 
         let mut d1 = ManhattanDir::N;
-        for d2 in ManhattanDir::into_enum_iter() {
+        for d2 in all::<ManhattanDir>() {
             assert_eq!(d1, d2);
             d1 = d1.clockwise();
         }
@@ -515,5 +515,15 @@ mod tests {
             (8, 21), (16, 6), (11, 27), (3, 1), (17, 3), (14, 15), (4, 3), (15, 10), (9, 25)] {
             assert_eq!(roll_counts.count(&num), count);
         }
+    }
+
+    #[test]
+    pub fn test_grid_world() {
+        const FILENAME: &str = "num_grid.txt";
+        let grid = GridWorld::from_file(FILENAME).unwrap();
+        assert_eq!(grid.width(), 10);
+        assert_eq!(grid.height(), 10);
+        let grid_str = std::fs::read_to_string(FILENAME).unwrap();
+        assert_eq!(grid_str, format!("{}", grid));
     }
 }

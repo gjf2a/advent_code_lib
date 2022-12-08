@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 maplit = "1.0.2"
-enum-iterator = "0.6.0"
+enum-iterator = "1"
 trait-set = "0.3"
 derive-getters = "0.2.0"
 common_macros = "0.1"

@@ -2,7 +2,7 @@ use std::{io, mem};
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub};
 use std::str::FromStr;
 use crate::make_io_error;
-use enum_iterator::IntoEnumIterator;
+use enum_iterator::{Sequence, all};
 
 #[derive(Debug,Copy,Clone,Eq,PartialEq,Ord,PartialOrd,Hash)]
 pub struct Position {
@@ -85,11 +85,11 @@ impl Position {
     }
 
     pub fn manhattan_neighbors(&self) -> impl Iterator<Item=Position> + '_ {
-        ManhattanDir::into_enum_iter().map(|dir| *self + dir.position_offset())
+        all::<ManhattanDir>().map(|dir| *self + dir.position_offset())
     }
 
     pub fn neighbors(&self) -> impl Iterator<Item=Position> + '_ {
-        Dir::into_enum_iter().map(|dir| *self + dir.position_offset())
+        all::<Dir>().map(|dir| *self + dir.position_offset())
     }
 }
 
@@ -204,7 +204,7 @@ pub trait DirType {
     }
 }
 
-#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
+#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,Sequence)]
 pub enum ManhattanDir {
     N, E, S, W
 }
@@ -240,7 +240,7 @@ impl ManhattanDir {
     }
 }
 
-#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,IntoEnumIterator)]
+#[derive(Debug,Clone,Copy,Eq,PartialEq,Ord,PartialOrd,Sequence)]
 pub enum Dir {
     N, Ne, E, Se, S, Sw, W, Nw
 }
