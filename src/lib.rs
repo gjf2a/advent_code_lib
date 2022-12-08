@@ -1,6 +1,7 @@
 mod searchers;
 mod position;
 mod failed_a_star;
+mod grid;
 
 use std::slice::Iter;
 use std::{io, fs, env};
@@ -14,6 +15,7 @@ use enum_iterator::IntoEnumIterator;
 
 pub use crate::searchers::*;
 pub use crate::position::*;
+pub use crate::grid::*;
 
 pub fn advent_main(other_args: &[&str], optional_args: &[&str],
                    code: fn(Vec<String>) -> io::Result<()>) -> io::Result<()> {
