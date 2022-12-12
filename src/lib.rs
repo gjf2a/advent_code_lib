@@ -458,6 +458,7 @@ mod tests {
                 println!("Testing Position from \"{}\"", s);
                 assert_eq!(Position::from((*x, *y)), s.parse().unwrap());
             }
+            assert_eq!(format!("({}, {})", x, y), format!("{}", Position::from((*x, *y))));
         }
     }
 

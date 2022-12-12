@@ -1,5 +1,6 @@
 use crate::make_io_error;
 use enum_iterator::{all, Sequence};
+use std::fmt::Display;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub};
 use std::str::FromStr;
 use std::{io, mem};
@@ -8,6 +9,12 @@ use std::{io, mem};
 pub struct Position {
     pub row: isize,
     pub col: isize,
+}
+
+impl Display for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.col, self.row)
+    }
 }
 
 impl Add for Position {
