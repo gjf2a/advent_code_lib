@@ -1,6 +1,6 @@
 [package]
 name = "advent_code_lib"
-version = "0.15.1"
+version = "0.15.2"
 authors = ["gjf2a <ferrer@hendrix.edu>"]
 edition = "2021"
 

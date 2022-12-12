@@ -21,6 +21,7 @@ impl CharDisplay for char {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct GridWorld<V> {
     map: HashMap<Position, V>,
     width: usize,
