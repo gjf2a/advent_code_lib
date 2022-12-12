@@ -1,6 +1,6 @@
 use crate::{map_width_height, Position, RowMajorPositionIterator, to_map};
 use bare_metal_modulo::*;
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::{HashMap, BTreeSet}, fmt::Display};
 
 pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
 pub type GridCharWorld = GridWorld<char>;
@@ -39,7 +39,7 @@ impl GridCharWorld {
     }
 }
 
-impl <V: Copy + Clone> GridWorld<V> {
+impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     pub fn from_file<F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<Self> {
         let map = to_map(filename, reader)?;
         let (width, height) = map_width_height(&map);
@@ -61,9 +61,13 @@ impl <V: Copy + Clone> GridWorld<V> {
     pub fn position_iter(&self) -> RowMajorPositionIterator {
         RowMajorPositionIterator::new(self.width, self.height)
     }
+
+    pub fn positions_for(&self, item: V) -> BTreeSet<Position> {
+        self.position_iter().filter(|p| self.value(*p).unwrap() == item).collect()
+    }
 }
 
-impl<V: CharDisplay + Copy> Display for GridWorld<V> {
+impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for p in self.position_iter() {
             if p.row > 0 && p.col == 0 {

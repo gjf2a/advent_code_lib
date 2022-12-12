@@ -304,6 +304,7 @@ fn combo_help<F: FnMut(&[usize; O]), const O: usize>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bare_metal_modulo::ModNumC;
     use enum_iterator::all;
     use hash_histogram::HashHistogram;
     use std::collections::HashSet;
@@ -638,6 +639,7 @@ mod tests {
         ] {
             let p = Position::from(p);
             assert_eq!(grid.value(p).unwrap(), value);
+            assert!(grid.positions_for(ModNumC::new(value)).contains(&p));
         }
     }
 }
