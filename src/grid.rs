@@ -65,6 +65,10 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     pub fn positions_for(&self, item: V) -> BTreeSet<Position> {
         self.position_iter().filter(|p| self.value(*p).unwrap() == item).collect()
     }
+
+    pub fn any_position_for(&self, item: V) -> Position {
+        self.positions_for(item).iter().next().copied().unwrap()
+    }
 }
 
 impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
