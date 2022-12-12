@@ -648,5 +648,12 @@ mod tests {
             let p = Position::from(p);
             assert!(!grid.in_bounds(p));
         }
+
+        let mut grid = grid;
+        for p in grid.position_iter() {
+            let old = grid.value(p).unwrap();
+            grid.modify(p, |v| *v += 1);
+            assert_eq!(old + 1, grid.value(p).unwrap());
+        }
     }
 }

@@ -63,6 +63,10 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
         self.map.get(&p).copied()
     }
 
+    pub fn modify<M: FnMut(&mut V)>(&mut self, p: Position, mut modifier: M) {
+        self.map.get_mut(&p).map(|v| modifier(v));
+    }
+
     pub fn position_iter(&self) -> RowMajorPositionIterator {
         RowMajorPositionIterator::new(self.width, self.height)
     }
