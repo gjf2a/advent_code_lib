@@ -650,11 +650,18 @@ mod tests {
             assert!(!grid.in_bounds(p));
         }
 
+        let original = grid.clone();
         let mut grid = grid;
         for p in grid.position_iter() {
             let old = grid.value(p).unwrap();
             grid.modify(p, |v| *v += 1);
             assert_eq!(old + 1, grid.value(p).unwrap());
         }
+
+        for (_, value) in grid.position_value_iter_mut() {
+            *value -= 1;
+        }
+
+        assert_eq!(original, grid);
     }
 }

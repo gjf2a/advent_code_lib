@@ -21,7 +21,7 @@ impl CharDisplay for char {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct GridWorld<V> {
     map: HashMap<Position, V>,
     width: usize,
@@ -73,6 +73,10 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
 
     pub fn position_value_iter(&self) -> impl Iterator<Item = (&Position, &V)> {
         self.map.iter()
+    }
+
+    pub fn position_value_iter_mut(&mut self) -> impl Iterator<Item = (&Position, &mut V)> {
+        self.map.iter_mut()
     }
 
     pub fn positions_for(&self, item: V) -> BTreeSet<Position> {
