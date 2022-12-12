@@ -540,7 +540,7 @@ mod tests {
         println!("Search complete.");
         assert_eq!(paths_back.len(), 13);
         for node in paths_back.keys() {
-            let len = paths_back.path_back_from(node).len();
+            let len = paths_back.path_back_from(node).unwrap().len();
             println!("From {:?}: {}", node, len);
             assert!(len - 1 <= max_dist);
         }
@@ -575,7 +575,7 @@ mod tests {
             parent_map_str.as_str(),
             r#"ParentMap { parents: {"start": None, "A": Some("start"), "b": Some("start"), "c": Some("A"), "end": Some("A"), "d": Some("b")}, last_dequeued: Some("d") }"#
         );
-        let path = parent_map.path_back_from(&"end".to_string());
+        let path = parent_map.path_back_from(&"end".to_string()).unwrap();
         let path_str = format!("{:?}", path);
         assert_eq!(path_str, r#"["start", "A", "end"]"#);
     }

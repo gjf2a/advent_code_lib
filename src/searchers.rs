@@ -223,7 +223,7 @@ impl<T: SearchNode> ParentMap<T> {
         self.parents.contains_key(item)
     }
 
-    pub fn path_back_from(&self, end: &T) -> VecDeque<T> {
+    pub fn path_back_from(&self, end: &T) -> Option<VecDeque<T>> {
         path_back_from(end, &self.parents)
     }
 
@@ -253,7 +253,7 @@ impl<T: SearchNode, Q: SearchQueue<T>> ParentMapQueue<T, Q> {
         self.parent_map.parent_of(item)
     }
 
-    pub fn path_back_from(&self, end: &T) -> VecDeque<T> {
+    pub fn path_back_from(&self, end: &T) -> Option<VecDeque<T>> {
         self.parent_map.path_back_from(end)
     }
 }
@@ -361,7 +361,7 @@ impl<C: Priority, T: SearchNode> SearchResult<AStarQueue<C, T>> {
             .parents
             .get_last_dequeued()
             .as_ref()
-            .map(|last| self.open_list.parents.path_back_from(last))
+            .and_then(|last| self.open_list.parents.path_back_from(last))
     }
 }
 
@@ -375,19 +375,21 @@ where
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T, Option<T>>) -> VecDeque<T> {
+pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T, Option<T>>) -> Option<VecDeque<T>> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
         path.push_front(current.clone());
-        match parent_map.get(current).unwrap() {
-            None => break,
-            Some(parent) => {
-                current = parent;
+        match parent_map.get(current) {
+            None => return None,
+            Some(parent) => match parent {
+                None => return Some(path),
+                Some(parent) => {
+                    current = parent;
+                }
             }
         }
     }
-    path
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
