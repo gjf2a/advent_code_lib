@@ -626,6 +626,7 @@ mod tests {
     pub fn test_grid_world() {
         const FILENAME: &str = "num_grid.txt";
         let grid = GridDigitWorld::from_digit_file(FILENAME).unwrap();
+        assert_eq!(grid.len(), 100);
         assert_eq!(grid.width(), 10);
         assert_eq!(grid.height(), 10);
         let grid_str = std::fs::read_to_string(FILENAME).unwrap().replace("\r\n", "\n");

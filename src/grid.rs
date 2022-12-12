@@ -82,6 +82,10 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     pub fn any_position_for(&self, item: V) -> Position {
         self.positions_for(item).iter().next().copied().unwrap()
     }
+
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
 }
 
 impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
