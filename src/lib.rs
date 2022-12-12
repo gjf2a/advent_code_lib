@@ -640,6 +640,12 @@ mod tests {
             let p = Position::from(p);
             assert_eq!(grid.value(p).unwrap(), value);
             assert!(grid.positions_for(ModNumC::new(value)).contains(&p));
+            assert!(grid.in_bounds(p));
+        }
+
+        for p in [(10, 8), (-1, 0), (12, 12), (8, 10)] {
+            let p = Position::from(p);
+            assert!(!grid.in_bounds(p));
         }
     }
 }

@@ -46,6 +46,10 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
         Ok(Self { map, width, height })
     }
 
+    pub fn in_bounds(&self, p: Position) -> bool {
+        self.map.contains_key(&p)
+    }
+
     pub fn width(&self) -> usize {
         self.width
     }
