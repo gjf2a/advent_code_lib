@@ -66,6 +66,10 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
         RowMajorPositionIterator::new(self.width, self.height)
     }
 
+    pub fn position_value_iter(&self) -> impl Iterator<Item = (&Position, &V)> {
+        self.map.iter()
+    }
+
     pub fn positions_for(&self, item: V) -> BTreeSet<Position> {
         self.position_iter().filter(|p| self.value(*p).unwrap() == item).collect()
     }
