@@ -3,7 +3,6 @@ mod grid;
 mod position;
 mod searchers;
 
-use bare_metal_modulo::ModNumC;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::{Debug, Display};
 use std::fs::File;
@@ -90,17 +89,17 @@ pub fn file2nums(filename: &str) -> io::Result<Vec<isize>> {
         .collect())
 }
 
-pub fn nums2map(filename: &str) -> io::Result<HashMap<Position, ModNumC<u32, 10>>> {
-    let mut num_map = HashMap::new();
+pub fn to_map<V, F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<HashMap<Position, V>> {
+    let mut result = HashMap::new();
     for (row, line) in all_lines(filename)?.enumerate() {
         for (col, value) in line.chars().enumerate() {
-            num_map.insert(
+            result.insert(
                 Position::from((col as isize, row as isize)),
-                ModNumC::new(value.to_digit(10).unwrap()),
+                reader(value),
             );
         }
     }
-    Ok(num_map)
+    Ok(result)
 }
 
 pub fn map_width_height<V>(map: &HashMap<Position, V>) -> (usize, usize) {
@@ -594,21 +593,6 @@ mod tests {
     }
 
     #[test]
-    fn test_num_map() {
-        let map = nums2map("num_grid.txt").unwrap();
-        for (p, value) in [
-            ((0, 0), 1),
-            ((9, 0), 2),
-            ((2, 1), 8),
-            ((7, 8), 5),
-            ((8, 7), 3),
-        ] {
-            let p = Position::from(p);
-            assert_eq!(*map.get(&p).unwrap(), value);
-        }
-    }
-
-    #[test]
     fn test_combinations() {
         let mut roll_counts = HashHistogram::new();
         combinations_of(6, &mut |arr: &[usize; 3]| {
@@ -639,10 +623,21 @@ mod tests {
     #[test]
     pub fn test_grid_world() {
         const FILENAME: &str = "num_grid.txt";
-        let grid = GridWorld::from_file(FILENAME).unwrap();
+        let grid = GridDigitWorld::from_digit_file(FILENAME).unwrap();
         assert_eq!(grid.width(), 10);
         assert_eq!(grid.height(), 10);
-        let grid_str = std::fs::read_to_string(FILENAME).unwrap();
+        let grid_str = std::fs::read_to_string(FILENAME).unwrap().replace("\r\n", "\n");
         assert_eq!(grid_str, format!("{}", grid));
+
+        for (p, value) in [
+            ((0, 0), 1),
+            ((9, 0), 2),
+            ((2, 1), 8),
+            ((7, 8), 5),
+            ((8, 7), 3),
+        ] {
+            let p = Position::from(p);
+            assert_eq!(grid.value(p).unwrap(), value);
+        }
     }
 }

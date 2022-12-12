@@ -1,16 +1,47 @@
-use crate::{map_width_height, nums2map, Position, RowMajorPositionIterator};
+use crate::{map_width_height, Position, RowMajorPositionIterator, to_map};
 use bare_metal_modulo::*;
 use std::{collections::HashMap, fmt::Display};
 
-pub struct GridWorld {
-    map: HashMap<Position, ModNumC<u32, 10>>,
+pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
+pub type GridCharWorld = GridWorld<char>;
+
+pub trait CharDisplay {
+    fn display(&self) -> char;
+}
+
+impl CharDisplay for ModNumC<u8, 10> {
+    fn display(&self) -> char {
+        (self.a() + '0' as u8) as char
+    }
+}
+
+impl CharDisplay for char {
+    fn display(&self) -> char {
+        *self
+    }
+}
+
+pub struct GridWorld<V> {
+    map: HashMap<Position, V>,
     width: usize,
     height: usize,
 }
 
-impl GridWorld {
-    pub fn from_file(filename: &str) -> anyhow::Result<Self> {
-        let map = nums2map(filename)?;
+impl GridDigitWorld {
+    pub fn from_digit_file(filename: &str) -> anyhow::Result<GridDigitWorld> {
+        Self::from_file(filename, |c| ModNumC::new(c.to_digit(10).unwrap() as u8))
+    }
+}
+
+impl GridCharWorld {
+    pub fn from_char_file(filename: &str) -> anyhow::Result<GridCharWorld> {
+        Self::from_file(filename, |c| c)
+    }
+}
+
+impl <V: Copy + Clone> GridWorld<V> {
+    pub fn from_file<F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<Self> {
+        let map = to_map(filename, reader)?;
         let (width, height) = map_width_height(&map);
         Ok(Self { map, width, height })
     }
@@ -23,7 +54,7 @@ impl GridWorld {
         self.height
     }
 
-    pub fn value(&self, p: Position) -> Option<ModNumC<u32, 10>> {
+    pub fn value(&self, p: Position) -> Option<V> {
         self.map.get(&p).copied()
     }
 
@@ -32,13 +63,13 @@ impl GridWorld {
     }
 }
 
-impl Display for GridWorld {
+impl<V: CharDisplay + Copy> Display for GridWorld<V> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for p in self.position_iter() {
             if p.row > 0 && p.col == 0 {
                 write!(f, "\n")?;
             }
-            write!(f, "{}", self.value(p).unwrap().a())?;
+            write!(f, "{}", self.value(p).unwrap().display())?;
         }
         Ok(())
     }
