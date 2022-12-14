@@ -668,7 +668,7 @@ mod tests {
     #[test]
     fn test_infinite_grid() {
         let mut grid: InfiniteGrid<u8> = InfiniteGrid::default();
-        let values: HashMap<(isize, isize), u8> = [((1, 1), 5), ((10, -1), 4)].iter().copied().collect();
+        let values: HashMap<(isize, isize), u8> = [((1, 1), 5), ((3, -1), 4)].iter().copied().collect();
         for ((x, y), value) in values.iter() {
             grid.add(*x, *y, *value);
         }
@@ -679,12 +679,13 @@ mod tests {
             }
         }
 
-        assert_eq!(grid.bounding_box(), ((1, -1),(10, 1)));
+        assert_eq!(grid.bounding_box(), ((1, -1),(3, 1)));
 
         grid.move_square((1, 1), (-1, 1));
         assert_eq!(grid.get(1, 1), 0);
         assert_eq!(grid.get(0, 2), 5);
 
-        assert_eq!(grid.bounding_box(), ((0, -1),(10, 2)));
+        assert_eq!(grid.bounding_box(), ((0, -1),(3, 2)));
+        assert_eq!(format!("{grid}"), "0004\n0000\n0000\n5000\n");
     }
 }

@@ -105,11 +105,24 @@ impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
 }
 
 #[derive(Clone, Debug, Default)]
-pub struct InfiniteGrid<V: Copy + Clone + Debug + Default> {
+pub struct InfiniteGrid<V: Copy + Clone + Debug + Default + Display> {
     map: BTreeMap<Position, V>
 }
 
-impl<V: Copy + Clone + Debug + Default> InfiniteGrid<V> {
+impl<V: Copy + Clone + Debug + Default + Display> Display for InfiniteGrid<V> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ((x_start, y_start), (x_end, y_end)) = self.bounding_box();
+        for y in y_start..=y_end {
+            for x in x_start..=x_end {
+                write!(f, "{}", self.get(x, y))?;
+            }
+            write!(f, "\n")?
+        }
+        Ok(())
+    }
+}
+
+impl<V: Copy + Clone + Debug + Default + Display> InfiniteGrid<V> {
     pub fn get_pos(&self, p: Position) -> V {
         self.map.get(&p).copied().unwrap_or_default()
     }
