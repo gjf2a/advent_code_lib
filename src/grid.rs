@@ -125,4 +125,31 @@ impl<V: Copy + Clone + Debug + Default> InfiniteGrid<V> {
     pub fn add(&mut self, x: isize, y: isize, value: V) {
         self.add_pos(Position {row: y, col: x }, value)
     }
+
+    pub fn move_square(&mut self, start: (isize, isize), movement: (isize, isize)) {
+        let start = Position {col: start.0, row: start.1};
+        let offset = Position {col: movement.0, row: movement.1};
+        let value = self.map.remove(&start).unwrap_or_default();
+        self.add_pos(start + offset, value);
+    } 
+
+    pub fn bounding_box(&self) -> ((isize, isize), (isize, isize)) {
+        ((self.min_x(), self.min_y()), (self.max_x(), self.max_y()))
+    }
+
+    pub fn min_x(&self) -> isize {
+        self.map.keys().map(|k| k.col).min().unwrap()
+    }
+
+    pub fn max_x(&self) -> isize {
+        self.map.keys().map(|k| k.col).max().unwrap()
+    }
+
+    pub fn min_y(&self) -> isize {
+        self.map.keys().map(|k| k.row).min().unwrap()
+    }
+
+    pub fn max_y(&self) -> isize {
+        self.map.keys().map(|k| k.row).max().unwrap()
+    }
 }

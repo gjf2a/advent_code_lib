@@ -672,13 +672,19 @@ mod tests {
         for ((x, y), value) in values.iter() {
             grid.add(*x, *y, *value);
         }
-        grid.add(1, 1, 5);
-        grid.add(10, -1, 4);
         for x in -10..=10 {
             for y in -10..=10 {
                 let target = values.get(&(x, y)).copied().unwrap_or_default();
                 assert_eq!(target, grid.get(x, y));
             }
         }
+
+        assert_eq!(grid.bounding_box(), ((1, -1),(10, 1)));
+
+        grid.move_square((1, 1), (-1, 1));
+        assert_eq!(grid.get(1, 1), 0);
+        assert_eq!(grid.get(0, 2), 5);
+
+        assert_eq!(grid.bounding_box(), ((0, -1),(10, 2)));
     }
 }
