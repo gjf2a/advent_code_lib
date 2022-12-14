@@ -1,6 +1,6 @@
 use crate::{map_width_height, Position, RowMajorPositionIterator, to_map};
 use bare_metal_modulo::*;
-use std::{collections::{HashMap, BTreeSet}, fmt::{Debug, Display}};
+use std::{collections::{HashMap, BTreeSet, BTreeMap}, fmt::{Debug, Display}};
 
 pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
 pub type GridCharWorld = GridWorld<char>;
@@ -106,7 +106,7 @@ impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
 
 #[derive(Clone, Debug, Default)]
 pub struct InfiniteGrid<V: Copy + Clone + Debug + Default> {
-    map: HashMap<Position, V>
+    map: BTreeMap<Position, V>
 }
 
 impl<V: Copy + Clone + Debug + Default> InfiniteGrid<V> {
