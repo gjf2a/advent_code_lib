@@ -664,4 +664,21 @@ mod tests {
 
         assert_eq!(original, grid);
     }
+
+    #[test]
+    fn test_infinite_grid() {
+        let mut grid: InfiniteGrid<u8> = InfiniteGrid::default();
+        let values: HashMap<(isize, isize), u8> = [((1, 1), 5), ((10, -1), 4)].iter().copied().collect();
+        for ((x, y), value) in values.iter() {
+            grid.add(*x, *y, *value);
+        }
+        grid.add(1, 1, 5);
+        grid.add(10, -1, 4);
+        for x in -10..=10 {
+            for y in -10..=10 {
+                let target = values.get(&(x, y)).copied().unwrap_or_default();
+                assert_eq!(target, grid.get(x, y));
+            }
+        }
+    }
 }

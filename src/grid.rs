@@ -1,6 +1,6 @@
 use crate::{map_width_height, Position, RowMajorPositionIterator, to_map};
 use bare_metal_modulo::*;
-use std::{collections::{HashMap, BTreeSet}, fmt::Display};
+use std::{collections::{HashMap, BTreeSet}, fmt::{Debug, Display}};
 
 pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
 pub type GridCharWorld = GridWorld<char>;
@@ -101,5 +101,28 @@ impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
             write!(f, "{}", self.value(p).unwrap().display())?;
         }
         Ok(())
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct InfiniteGrid<V: Copy + Clone + Debug + Default> {
+    map: HashMap<Position, V>
+}
+
+impl<V: Copy + Clone + Debug + Default> InfiniteGrid<V> {
+    pub fn get_pos(&self, p: Position) -> V {
+        self.map.get(&p).copied().unwrap_or_default()
+    }
+
+    pub fn add_pos(&mut self, p: Position, value: V) {
+        self.map.insert(p, value);
+    }
+
+    pub fn get(&self, x: isize, y: isize) -> V {
+        self.get_pos(Position { row: y, col: x })
+    }
+
+    pub fn add(&mut self, x: isize, y: isize, value: V) {
+        self.add_pos(Position {row: y, col: x }, value)
     }
 }
