@@ -41,14 +41,6 @@ impl GridCharWorld {
 }
 
 impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
-    pub fn new() -> Self {
-        Self {
-            map: HashMap::new(),
-            width: 0,
-            height: 0,
-        }
-    }
-
     pub fn from_file<F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<Self> {
         let map = to_map(filename, reader)?;
         let (width, height) = map_width_height(&map);
