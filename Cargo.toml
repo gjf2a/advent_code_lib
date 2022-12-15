@@ -1,6 +1,6 @@
 [package]
 name = "advent_code_lib"
-version = "0.17.1"
+version = "0.17.2"
 authors = ["gjf2a <ferrer@hendrix.edu>"]
 edition = "2021"
 
@@ -13,7 +13,7 @@ trait-set = "0.3"
 derive-getters = "0.2.0"
 common_macros = "0.1"
 bare_metal_modulo = "1"
-hash_histogram = "0.6"
+hash_histogram = "0.7"
 priority-queue = "1.2"
 num = "0.4"
 indexmap = "1.7"

@@ -6,7 +6,7 @@ use std::ops::{Add, AddAssign, Mul, MulAssign, Sub};
 use std::str::FromStr;
 use std::{io, mem};
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default)]
 pub struct Position {
     pub row: isize,
     pub col: isize,
@@ -65,7 +65,7 @@ impl MulAssign<isize> for Position {
 
 impl Position {
     pub fn new() -> Self {
-        Position::from((0, 0))
+        Self::default()
     }
 
     pub fn from(pair: (isize, isize)) -> Self {
