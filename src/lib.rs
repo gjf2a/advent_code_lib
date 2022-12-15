@@ -3,7 +3,7 @@ mod grid;
 mod position;
 mod searchers;
 
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::{Debug, Display};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Lines};
@@ -87,6 +87,21 @@ pub fn file2nums(filename: &str) -> io::Result<Vec<isize>> {
     Ok(all_lines(filename)?
         .map(|line| line.parse::<isize>().unwrap())
         .collect())
+}
+
+pub fn keep_only<F: Fn(char) -> bool>(check: F, s: String) -> String {
+    s.chars().map(|c| if check(c) { c } else { ' ' }).collect()
+}
+
+pub fn keep_digits(s: String) -> String {
+    keep_only(|c| c.is_digit(10) || c == '-', s)
+}
+
+pub fn all_nums_from<N: FromStr>(s: String) -> VecDeque<N> {
+    keep_digits(s)
+        .split_whitespace()
+        .map(|s| s.parse::<N>().ok().unwrap())
+        .collect()
 }
 
 pub fn to_map<V, F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<HashMap<Position, V>> {
@@ -687,5 +702,22 @@ mod tests {
 
         assert_eq!(grid.bounding_box(), ((0, -1),(3, 2)));
         assert_eq!(format!("{grid}"), "0004\n0000\n0000\n5000\n");
+    }
+
+    #[test]
+    fn test_nums_from() {
+        let examples = [
+            ("  Starting items: 79, 98", vec![79, 98]),
+            ("  Starting items: 54, 65, 75, 74", vec![54, 65, 75, 74]),
+            ("Sensor at x=2, y=18: closest beacon is at x=-2, y=15", vec![2, 18, -2, 15]),
+        ];
+
+        for (ex, nums) in examples.iter() {
+            let result: VecDeque<isize> = all_nums_from(ex.to_string());
+            assert_eq!(result.len(), nums.len());
+            for i in 0..result.len() {
+                assert_eq!(result[i], nums[i]);
+            }
+        }
     }
 }
