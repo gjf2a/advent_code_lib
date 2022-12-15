@@ -1,5 +1,6 @@
 use crate::make_io_error;
 use enum_iterator::{all, Sequence};
+use std::collections::VecDeque;
 use std::fmt::Display;
 use std::ops::{Add, AddAssign, Mul, MulAssign, Sub};
 use std::str::FromStr;
@@ -72,6 +73,12 @@ impl Position {
             col: pair.0,
             row: pair.1,
         }
+    }
+
+    pub fn grab_from(nums: &mut VecDeque<isize>) -> Self {
+        let col = nums.pop_front().unwrap();
+        let row = nums.pop_front().unwrap();
+        Self {col, row}
     }
 
     pub fn update(&mut self, d: Dir) {

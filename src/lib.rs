@@ -104,6 +104,16 @@ pub fn all_nums_from<N: FromStr>(s: String) -> VecDeque<N> {
         .collect()
 }
 
+pub fn all_positions_from(s: String) -> VecDeque<Position> {
+    let mut nums = all_nums_from(s);
+    let mut result = VecDeque::new();
+    assert!(nums.len() % 2 == 0);
+    while nums.len() > 0 {
+        result.push_back(Position::grab_from(&mut nums));
+    }
+    result
+}
+
 pub fn to_map<V, F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<HashMap<Position, V>> {
     let mut result = HashMap::new();
     for (row, line) in all_lines(filename)?.enumerate() {
@@ -717,6 +727,22 @@ mod tests {
             assert_eq!(result.len(), nums.len());
             for i in 0..result.len() {
                 assert_eq!(result[i], nums[i]);
+            }
+        }
+    }
+
+    #[test]
+    fn test_positions_from() {
+        let examples = [
+            ("Sensor at x=20, y=14: closest beacon is at x=25, y=17", vec![(20, 14), (25, 17)]),
+            ("Sensor at x=2, y=18: closest beacon is at x=-2, y=15", vec![(2, 18), (-2, 15)]),
+        ];
+
+        for (ex, pairs) in examples.iter() {
+            let mut result = all_positions_from(ex.to_string());
+            for pair in pairs.iter() {
+                let p = Position::from(*pair);
+                assert_eq!(p, result.pop_front().unwrap());
             }
         }
     }
