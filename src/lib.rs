@@ -809,12 +809,20 @@ mod tests {
     }
 
     #[test]
-    fn test_bounding_box() {
+    fn test_bounding_coords() {
         let pts = ["1,0,-1", "-1,0,1", "0,-1,0"];
-        let bbox = Point::<i64, 3>::bounding_box(pts.iter().map(|p| p.parse().unwrap())).unwrap();
+        let bbox = Point::<i64, 3>::min_max_points(pts.iter().map(|p| p.parse().unwrap())).unwrap();
         let lo: Point<i64, 3> = Point::new([-1, -1, -1]);
         let hi: Point<i64, 3> = Point::new([1, 0, 1]);
         assert_eq!((lo, hi), bbox);
+    }
+
+    #[test]
+    fn test_bounding_box() {
+        let pts = ["1,0,-1", "-1,0,1", "0,-1,0"];
+        let bbox = Point::<i64, 3>::bounding_box(pts.iter().map(|p| p.parse().unwrap())).unwrap();
+        assert_eq!(bbox.len(), 8);
+        assert_eq!(format!("{bbox:?}"), "[Point { coords: [-1, -1, -1] }, Point { coords: [-1, -1, 1] }, Point { coords: [-1, 0, -1] }, Point { coords: [-1, 0, 1] }, Point { coords: [1, -1, -1] }, Point { coords: [1, -1, 1] }, Point { coords: [1, 0, -1] }, Point { coords: [1, 0, 1] }]");
     }
 
     #[test]
