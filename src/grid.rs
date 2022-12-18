@@ -1,6 +1,9 @@
-use crate::{map_width_height, Position, RowMajorPositionIterator, to_map};
+use crate::{map_width_height, to_map, Position, RowMajorPositionIterator};
 use bare_metal_modulo::*;
-use std::{collections::{HashMap, BTreeSet, BTreeMap}, fmt::{Debug, Display}};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap},
+    fmt::{Debug, Display},
+};
 
 pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
 pub type GridCharWorld = GridWorld<char>;
@@ -40,7 +43,7 @@ impl GridCharWorld {
     }
 }
 
-impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
+impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     pub fn from_file<F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<Self> {
         let map = to_map(filename, reader)?;
         let (width, height) = map_width_height(&map);
@@ -80,7 +83,9 @@ impl <V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     }
 
     pub fn positions_for(&self, item: V) -> BTreeSet<Position> {
-        self.position_iter().filter(|p| self.value(*p).unwrap() == item).collect()
+        self.position_iter()
+            .filter(|p| self.value(*p).unwrap() == item)
+            .collect()
     }
 
     pub fn any_position_for(&self, item: V) -> Position {
@@ -106,7 +111,7 @@ impl<V: CharDisplay + Copy + Eq + PartialEq> Display for GridWorld<V> {
 
 #[derive(Clone, Debug, Default)]
 pub struct InfiniteGrid<V: Copy + Clone + Debug + Default + Display> {
-    map: BTreeMap<Position, V>
+    map: BTreeMap<Position, V>,
 }
 
 impl<V: Copy + Clone + Debug + Default + Display> Display for InfiniteGrid<V> {
@@ -136,15 +141,21 @@ impl<V: Copy + Clone + Debug + Default + Display> InfiniteGrid<V> {
     }
 
     pub fn add(&mut self, x: isize, y: isize, value: V) {
-        self.add_pos(Position {row: y, col: x }, value)
+        self.add_pos(Position { row: y, col: x }, value)
     }
 
     pub fn move_square(&mut self, start: (isize, isize), movement: (isize, isize)) {
-        let start = Position {col: start.0, row: start.1};
-        let offset = Position {col: movement.0, row: movement.1};
+        let start = Position {
+            col: start.0,
+            row: start.1,
+        };
+        let offset = Position {
+            col: movement.0,
+            row: movement.1,
+        };
         let value = self.map.remove(&start).unwrap_or_default();
         self.add_pos(start + offset, value);
-    } 
+    }
 
     pub fn bounding_box(&self) -> ((isize, isize), (isize, isize)) {
         ((self.min_x(), self.min_y()), (self.max_x(), self.max_y()))

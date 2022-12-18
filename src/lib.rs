@@ -1,8 +1,8 @@
 mod failed_a_star;
 mod grid;
+mod multidim;
 mod position;
 mod searchers;
-mod multidim;
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::{Debug, Display};
@@ -13,9 +13,9 @@ use std::str::FromStr;
 use std::{env, fs, io};
 
 pub use crate::grid::*;
+pub use crate::multidim::*;
 pub use crate::position::*;
 pub use crate::searchers::*;
-pub use crate::multidim::*;
 
 pub fn advent_main(
     other_args: &[&str],
@@ -116,14 +116,14 @@ pub fn all_positions_from(s: String) -> VecDeque<Position> {
     result
 }
 
-pub fn to_map<V, F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<HashMap<Position, V>> {
+pub fn to_map<V, F: Fn(char) -> V>(
+    filename: &str,
+    reader: F,
+) -> anyhow::Result<HashMap<Position, V>> {
     let mut result = HashMap::new();
     for (row, line) in all_lines(filename)?.enumerate() {
         for (col, value) in line.chars().enumerate() {
-            result.insert(
-                Position::from((col as isize, row as isize)),
-                reader(value),
-            );
+            result.insert(Position::from((col as isize, row as isize)), reader(value));
         }
     }
     Ok(result)
@@ -485,7 +485,10 @@ mod tests {
                 println!("Testing Position from \"{}\"", s);
                 assert_eq!(Position::from((*x, *y)), s.parse().unwrap());
             }
-            assert_eq!(format!("({}, {})", x, y), format!("{}", Position::from((*x, *y))));
+            assert_eq!(
+                format!("({}, {})", x, y),
+                format!("{}", Position::from((*x, *y)))
+            );
         }
     }
 
@@ -656,7 +659,9 @@ mod tests {
         assert_eq!(grid.len(), 100);
         assert_eq!(grid.width(), 10);
         assert_eq!(grid.height(), 10);
-        let grid_str = std::fs::read_to_string(FILENAME).unwrap().replace("\r\n", "\n");
+        let grid_str = std::fs::read_to_string(FILENAME)
+            .unwrap()
+            .replace("\r\n", "\n");
         assert_eq!(grid_str, format!("{}", grid));
 
         for (p, value) in [
@@ -695,7 +700,8 @@ mod tests {
     #[test]
     fn test_infinite_grid() {
         let mut grid: InfiniteGrid<u8> = InfiniteGrid::default();
-        let values: HashMap<(isize, isize), u8> = [((1, 1), 5), ((3, -1), 4)].iter().copied().collect();
+        let values: HashMap<(isize, isize), u8> =
+            [((1, 1), 5), ((3, -1), 4)].iter().copied().collect();
         for ((x, y), value) in values.iter() {
             grid.add(*x, *y, *value);
         }
@@ -706,13 +712,13 @@ mod tests {
             }
         }
 
-        assert_eq!(grid.bounding_box(), ((1, -1),(3, 1)));
+        assert_eq!(grid.bounding_box(), ((1, -1), (3, 1)));
 
         grid.move_square((1, 1), (-1, 1));
         assert_eq!(grid.get(1, 1), 0);
         assert_eq!(grid.get(0, 2), 5);
 
-        assert_eq!(grid.bounding_box(), ((0, -1),(3, 2)));
+        assert_eq!(grid.bounding_box(), ((0, -1), (3, 2)));
         assert_eq!(format!("{grid}"), "0004\n0000\n0000\n5000\n");
     }
 
@@ -721,7 +727,10 @@ mod tests {
         let examples = [
             ("  Starting items: 79, 98", vec![79, 98]),
             ("  Starting items: 54, 65, 75, 74", vec![54, 65, 75, 74]),
-            ("Sensor at x=2, y=18: closest beacon is at x=-2, y=15", vec![2, 18, -2, 15]),
+            (
+                "Sensor at x=2, y=18: closest beacon is at x=-2, y=15",
+                vec![2, 18, -2, 15],
+            ),
         ];
 
         for (ex, nums) in examples.iter() {
@@ -736,8 +745,14 @@ mod tests {
     #[test]
     fn test_positions_from() {
         let examples = [
-            ("Sensor at x=20, y=14: closest beacon is at x=25, y=17", vec![(20, 14), (25, 17)]),
-            ("Sensor at x=2, y=18: closest beacon is at x=-2, y=15", vec![(2, 18), (-2, 15)]),
+            (
+                "Sensor at x=20, y=14: closest beacon is at x=25, y=17",
+                vec![(20, 14), (25, 17)],
+            ),
+            (
+                "Sensor at x=2, y=18: closest beacon is at x=-2, y=15",
+                vec![(2, 18), (-2, 15)],
+            ),
         ];
 
         for (ex, pairs) in examples.iter() {
@@ -759,10 +774,12 @@ mod tests {
             let point = p.parse::<Point<i64, 3>>().unwrap();
             assert_eq!(format!("{p}"), format!("{point}"));
         }
-        
-        assert_eq!(
-            "(1, 2, 3)".parse::<Point<i64, 3>>().unwrap(), 
-            "1,2,3".parse::<Point<i64, 3>>().unwrap());
+
+        let p = "1,2,3".parse::<Point<i64, 3>>().unwrap();
+        assert_eq!(p, "(1, 2, 3)".parse::<Point<i64, 3>>().unwrap());
+        assert_eq!(p[0], 1);
+        assert_eq!(p[1], 2);
+        assert_eq!(p[2], 3);
     }
 
     #[test]
@@ -783,11 +800,11 @@ mod tests {
 
     #[test]
     fn test_point_math() {
-        let p1: Point<i64, 3> = Point {coords: [1, 2, 3]};
-        let p2: Point<i64, 3> = Point {coords: [4, 5, 6]};
+        let p1: Point<i64, 3> = Point::new([1, 2, 3]);
+        let p2: Point<i64, 3> = Point::new([4, 5, 6]);
         let add = p1 + p2;
-        assert_eq!(add, Point {coords: [5, 7, 9]});
+        assert_eq!(add, Point::new([5, 7, 9]));
         let sub = p1 - p2;
-        assert_eq!(sub, Point {coords: [-3, -3, -3]});
+        assert_eq!(sub, Point::new([-3, -3, -3]));
     }
 }

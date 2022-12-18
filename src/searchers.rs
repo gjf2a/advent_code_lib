@@ -375,7 +375,10 @@ where
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T, Option<T>>) -> Option<VecDeque<T>> {
+pub fn path_back_from<T: SearchNode>(
+    end: &T,
+    parent_map: &IndexMap<T, Option<T>>,
+) -> Option<VecDeque<T>> {
     let mut path = VecDeque::new();
     let mut current = end;
     loop {
@@ -387,7 +390,7 @@ pub fn path_back_from<T: SearchNode>(end: &T, parent_map: &IndexMap<T, Option<T>
                 Some(parent) => {
                     current = parent;
                 }
-            }
+            },
         }
     }
 }

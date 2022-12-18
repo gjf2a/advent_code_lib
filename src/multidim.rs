@@ -1,19 +1,37 @@
-use std::{str::FromStr, fmt::Display, ops::{Add, Neg, Sub}};
+use std::{
+    fmt::Display,
+    ops::{Add, Index, Neg, Sub},
+    str::FromStr,
+};
 
 use bare_metal_modulo::NumType;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Point<N: NumType, const S: usize> {
-    pub coords: [N; S]
+    coords: [N; S],
+}
+
+impl<N: NumType, const S: usize> Index<usize> for Point<N, S> {
+    type Output = N;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.coords[index]
+    }
 }
 
 impl<N: NumType, const S: usize> Default for Point<N, S> {
     fn default() -> Self {
-        Self { coords: [N::default(); S] }
+        Self {
+            coords: [N::default(); S],
+        }
     }
 }
 
 impl<N: NumType, const S: usize> Point<N, S> {
+    pub fn new(coords: [N; S]) -> Self {
+        Self {coords}
+    }
+
     pub fn x(&self) -> N {
         self.coords[0]
     }
@@ -27,8 +45,17 @@ impl<N: NumType, const S: usize> Point<N, S> {
     }
 
     pub fn adjacent(&self, other: &Point<N, S>) -> bool {
-        let all_but_1 = (0..S).filter(|i| self.coords[*i] == other.coords[*i]).count() == S - 1;
-        let touch = (0..S).filter(|i| self.coords[*i] == other.coords[*i] + N::one() || self.coords[*i] + N::one() == other.coords[*i]).count() == 1;
+        let all_but_1 = (0..S)
+            .filter(|i| self.coords[*i] == other.coords[*i])
+            .count()
+            == S - 1;
+        let touch = (0..S)
+            .filter(|i| {
+                self.coords[*i] == other.coords[*i] + N::one()
+                    || self.coords[*i] + N::one() == other.coords[*i]
+            })
+            .count()
+            == 1;
         all_but_1 && touch
     }
 }
@@ -45,7 +72,7 @@ impl<N: NumType, const S: usize> Add for Point<N, S> {
     }
 }
 
-impl<N: NumType + Neg<Output=N>, const S: usize> Neg for Point<N, S> {
+impl<N: NumType + Neg<Output = N>, const S: usize> Neg for Point<N, S> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -57,7 +84,7 @@ impl<N: NumType + Neg<Output=N>, const S: usize> Neg for Point<N, S> {
     }
 }
 
-impl<N: NumType + Neg<Output=N>, const S: usize> Sub for Point<N,S> {
+impl<N: NumType + Neg<Output = N>, const S: usize> Sub for Point<N, S> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -78,7 +105,10 @@ impl<N: NumType, const S: usize> Display for Point<N, S> {
     }
 }
 
-impl<N: NumType + FromStr, const S: usize> FromStr for Point<N, S> where <N as FromStr>::Err: 'static + Sync + Send + std::error::Error {
+impl<N: NumType + FromStr, const S: usize> FromStr for Point<N, S>
+where
+    <N as FromStr>::Err: 'static + Sync + Send + std::error::Error,
+{
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -90,6 +120,6 @@ impl<N: NumType + FromStr, const S: usize> FromStr for Point<N, S> where <N as F
         for (i, coord) in s.split(",").enumerate() {
             coords[i] = coord.trim().parse()?;
         }
-        Ok(Self {coords})
+        Ok(Self { coords })
     }
 }
