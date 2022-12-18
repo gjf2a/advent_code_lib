@@ -807,4 +807,13 @@ mod tests {
         let sub = p1 - p2;
         assert_eq!(sub, Point::new([-3, -3, -3]));
     }
+
+    #[test]
+    fn test_bounding_box() {
+        let pts = ["1,0,-1", "-1,0,1", "0,-1,0"];
+        let bbox = Point::<i64, 3>::bounding_box(pts.iter().map(|p| p.parse().unwrap())).unwrap();
+        let lo: Point<i64, 3> = Point::new([-1, -1, -1]);
+        let hi: Point<i64, 3> = Point::new([1, 0, 1]);
+        assert_eq!((lo, hi), bbox);
+    }
 }

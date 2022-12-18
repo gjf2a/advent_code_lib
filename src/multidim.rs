@@ -1,4 +1,5 @@
 use std::{
+    cmp::{max, min},
     fmt::Display,
     ops::{Add, Index, Neg, Sub},
     str::FromStr,
@@ -29,7 +30,31 @@ impl<N: NumType, const S: usize> Default for Point<N, S> {
 
 impl<N: NumType, const S: usize> Point<N, S> {
     pub fn new(coords: [N; S]) -> Self {
-        Self {coords}
+        Self { coords }
+    }
+
+    pub fn from_iter<I: Iterator<Item = N>>(items: I) -> Self {
+        let mut result = Self::default();
+        for (i, item) in items.enumerate() {
+            result.coords[i] = item;
+        }
+        result
+    }
+
+    pub fn bounding_box<I: Iterator<Item = Point<N, S>>>(
+        mut points: I,
+    ) -> Option<(Point<N, S>, Point<N, S>)> {
+        if let Some(init) = points.next() {
+            let init = (init, init);
+            Some(points.fold(init, |a, b| {
+                (
+                    Self::from_iter((0..S).map(|i| min(a.0[i], b[i]))),
+                    Self::from_iter((0..S).map(|i| max(a.1[i], b[i]))),
+                )
+            }))
+        } else {
+            None
+        }
     }
 
     pub fn x(&self) -> N {
