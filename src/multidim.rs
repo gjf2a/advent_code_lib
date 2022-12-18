@@ -1,13 +1,14 @@
 use std::{
     cmp::{max, min},
     fmt::Display,
+    iter::Sum,
     ops::{Add, Index, Neg, Sub},
-    str::FromStr, iter::Sum,
+    str::FromStr,
 };
 
 use bare_metal_modulo::NumType;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Point<N: NumType, const S: usize> {
     coords: [N; S],
 }
@@ -59,7 +60,7 @@ impl<N: NumType + num::traits::Signed + Sum<N>, const S: usize> Point<N, S> {
         (0..S).map(|i| (self[i] - other[i]).abs()).sum()
     }
 
-    pub fn manhattan_neighbors(&self) -> Vec<Point<N,S>> {
+    pub fn manhattan_neighbors(&self) -> Vec<Point<N, S>> {
         let mut result = vec![];
         for sign in [N::one(), -N::one()] {
             for pos in 0..S {

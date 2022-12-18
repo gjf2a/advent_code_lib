@@ -816,4 +816,14 @@ mod tests {
         let hi: Point<i64, 3> = Point::new([1, 0, 1]);
         assert_eq!((lo, hi), bbox);
     }
+
+    #[test]
+    fn test_order() {
+        let mut pts: Vec<Point<i64, 3>> = ["-1,0,0", "0,-1,-1", "1,0,-1", "-1,0,1", "0,-1,0"]
+            .iter()
+            .map(|s| s.parse().unwrap())
+            .collect();
+        pts.sort();
+        assert_eq!("[Point { coords: [-1, 0, 0] }, Point { coords: [-1, 0, 1] }, Point { coords: [0, -1, -1] }, Point { coords: [0, -1, 0] }, Point { coords: [1, 0, -1] }]", format!("{pts:?}"));
+    }
 }
