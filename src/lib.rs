@@ -2,6 +2,7 @@ mod failed_a_star;
 mod grid;
 mod position;
 mod searchers;
+mod multidim;
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::fmt::{Debug, Display};
@@ -14,6 +15,7 @@ use std::{env, fs, io};
 pub use crate::grid::*;
 pub use crate::position::*;
 pub use crate::searchers::*;
+pub use crate::multidim::*;
 
 pub fn advent_main(
     other_args: &[&str],
@@ -744,6 +746,38 @@ mod tests {
                 let p = Position::from(*pair);
                 assert_eq!(p, result.pop_front().unwrap());
             }
+        }
+    }
+
+    #[test]
+    fn test_point_parse() {
+        for p in ["1,2,3"] {
+            let point = p.parse::<Point<i64, 3>>().unwrap();
+            assert_eq!(format!("({p})"), format!("{point}"));
+        }
+        for p in ["(1,2,3)"] {
+            let point = p.parse::<Point<i64, 3>>().unwrap();
+            assert_eq!(format!("{p}"), format!("{point}"));
+        }
+        
+        assert_eq!(
+            "(1, 2, 3)".parse::<Point<i64, 3>>().unwrap(), 
+            "1,2,3".parse::<Point<i64, 3>>().unwrap());
+    }
+
+    #[test]
+    fn test_point_adjacent() {
+        for (p1, p2, outcome) in [
+            ("1,1,1", "2,1,1", true),
+            ("1,1,1", "1,1,1", false),
+            ("1,1,1", "3,1,1", false),
+            ("1,1,1", "0,1,1", true),
+            ("1,0,1", "1,1,1", true),
+        ] {
+            let p1: Point<i64, 3> = p1.parse().unwrap();
+            let p2: Point<i64, 3> = p2.parse().unwrap();
+            assert_eq!(p1.adjacent(&p2), outcome);
+            assert_eq!(p2.adjacent(&p1), outcome);
         }
     }
 }
