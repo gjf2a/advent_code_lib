@@ -2,7 +2,7 @@ use std::{
     cmp::{max, min},
     fmt::Display,
     ops::{Add, Index, Neg, Sub},
-    str::FromStr,
+    str::FromStr, iter::Sum,
 };
 
 use bare_metal_modulo::NumType;
@@ -10,22 +10,6 @@ use bare_metal_modulo::NumType;
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Point<N: NumType, const S: usize> {
     coords: [N; S],
-}
-
-impl<N: NumType, const S: usize> Index<usize> for Point<N, S> {
-    type Output = N;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.coords[index]
-    }
-}
-
-impl<N: NumType, const S: usize> Default for Point<N, S> {
-    fn default() -> Self {
-        Self {
-            coords: [N::default(); S],
-        }
-    }
 }
 
 impl<N: NumType, const S: usize> Point<N, S> {
@@ -68,20 +52,43 @@ impl<N: NumType, const S: usize> Point<N, S> {
     pub fn z(&self) -> N {
         self.coords[2]
     }
+}
+
+impl<N: NumType + num::traits::Signed + Sum<N>, const S: usize> Point<N, S> {
+    pub fn manhattan_distance(&self, other: &Point<N, S>) -> N {
+        (0..S).map(|i| (self[i] - other[i]).abs()).sum()
+    }
+
+    pub fn manhattan_neighbors(&self) -> Vec<Point<N,S>> {
+        let mut result = vec![];
+        for sign in [N::one(), -N::one()] {
+            for pos in 0..S {
+                let mut n = self.clone();
+                n.coords[pos] += sign;
+                result.push(n);
+            }
+        }
+        result
+    }
 
     pub fn adjacent(&self, other: &Point<N, S>) -> bool {
-        let all_but_1 = (0..S)
-            .filter(|i| self.coords[*i] == other.coords[*i])
-            .count()
-            == S - 1;
-        let touch = (0..S)
-            .filter(|i| {
-                self.coords[*i] == other.coords[*i] + N::one()
-                    || self.coords[*i] + N::one() == other.coords[*i]
-            })
-            .count()
-            == 1;
-        all_but_1 && touch
+        self.manhattan_distance(other) == N::one()
+    }
+}
+
+impl<N: NumType, const S: usize> Index<usize> for Point<N, S> {
+    type Output = N;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.coords[index]
+    }
+}
+
+impl<N: NumType, const S: usize> Default for Point<N, S> {
+    fn default() -> Self {
+        Self {
+            coords: [N::default(); S],
+        }
     }
 }
 
