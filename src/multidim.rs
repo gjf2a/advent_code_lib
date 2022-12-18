@@ -1,10 +1,16 @@
-use std::{str::FromStr, fmt::Display};
+use std::{str::FromStr, fmt::Display, ops::{Add, Neg, Sub}};
 
 use bare_metal_modulo::NumType;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Point<N: NumType, const S: usize> {
     pub coords: [N; S]
+}
+
+impl<N: NumType, const S: usize> Default for Point<N, S> {
+    fn default() -> Self {
+        Self { coords: [N::default(); S] }
+    }
 }
 
 impl<N: NumType, const S: usize> Point<N, S> {
@@ -24,6 +30,38 @@ impl<N: NumType, const S: usize> Point<N, S> {
         let all_but_1 = (0..S).filter(|i| self.coords[*i] == other.coords[*i]).count() == S - 1;
         let touch = (0..S).filter(|i| self.coords[*i] == other.coords[*i] + N::one() || self.coords[*i] + N::one() == other.coords[*i]).count() == 1;
         all_but_1 && touch
+    }
+}
+
+impl<N: NumType, const S: usize> Add for Point<N, S> {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut result = Self::default();
+        for i in 0..S {
+            result.coords[i] = self.coords[i] + rhs.coords[i];
+        }
+        result
+    }
+}
+
+impl<N: NumType + Neg<Output=N>, const S: usize> Neg for Point<N, S> {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        let mut result = Self::default();
+        for i in 0..S {
+            result.coords[i] = -self.coords[i];
+        }
+        result
+    }
+}
+
+impl<N: NumType + Neg<Output=N>, const S: usize> Sub for Point<N,S> {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self + -rhs
     }
 }
 

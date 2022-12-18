@@ -780,4 +780,14 @@ mod tests {
             assert_eq!(p2.adjacent(&p1), outcome);
         }
     }
+
+    #[test]
+    fn test_point_math() {
+        let p1: Point<i64, 3> = Point {coords: [1, 2, 3]};
+        let p2: Point<i64, 3> = Point {coords: [4, 5, 6]};
+        let add = p1 + p2;
+        assert_eq!(add, Point {coords: [5, 7, 9]});
+        let sub = p1 - p2;
+        assert_eq!(sub, Point {coords: [-3, -3, -3]});
+    }
 }
