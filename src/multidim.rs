@@ -18,6 +18,10 @@ impl<N: NumType, const S: usize> Point<N, S> {
         Self { coords }
     }
 
+    pub fn values(&self) -> impl Iterator<Item = N> + '_ {
+        self.coords.iter().copied()
+    }
+
     pub fn from_iter<I: Iterator<Item = N>>(items: I) -> Self {
         let mut result = Self::default();
         for (i, item) in items.enumerate() {
@@ -45,18 +49,24 @@ impl<N: NumType, const S: usize> Point<N, S> {
     pub fn bounding_box<I: Iterator<Item = Point<N, S>>>(points: I) -> Option<Vec<Point<N, S>>> {
         Self::min_max_points(points).map(|(ul, lr)| {
             let mut result = vec![];
-            Self::bb_help(&mut result, [N::default(); S], &ul, &lr, 0);            
+            Self::bb_help(&mut result, [N::default(); S], &ul, &lr, 0);
             result
         })
     }
 
-    fn bb_help(result: &mut Vec<Point<N,S>>, coords: [N; S], a: &Point<N,S>, b: &Point<N,S>, start: usize) {
+    fn bb_help(
+        result: &mut Vec<Point<N, S>>,
+        coords: [N; S],
+        a: &Point<N, S>,
+        b: &Point<N, S>,
+        start: usize,
+    ) {
         if start == coords.len() {
             result.push(Point::new(coords));
         } else {
             for use_a in [true, false] {
                 let mut copied = coords;
-                copied[start] = (if use_a {a} else {b})[start];
+                copied[start] = (if use_a { a } else { b })[start];
                 Self::bb_help(result, copied, a, b, start + 1);
             }
         }

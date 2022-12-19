@@ -834,4 +834,11 @@ mod tests {
         pts.sort();
         assert_eq!("[Point { coords: [-1, 0, 0] }, Point { coords: [-1, 0, 1] }, Point { coords: [0, -1, -1] }, Point { coords: [0, -1, 0] }, Point { coords: [1, 0, -1] }]", format!("{pts:?}"));
     }
+
+    #[test]
+    fn test_point_iter() {
+        let p: Point<i64, 3> = "3, -1, 2".parse().unwrap();
+        assert_eq!(-1, p.values().min().unwrap());
+        assert_eq!(3, p.values().max().unwrap());
+    }
 }
