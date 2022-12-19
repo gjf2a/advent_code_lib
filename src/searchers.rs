@@ -7,6 +7,7 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::ops::Add;
 use trait_set::trait_set;
+use num::Num;
 
 // Searchers to provide:
 //
@@ -17,7 +18,7 @@ use trait_set::trait_set;
 
 trait_set! {
     pub trait SearchNode = Eq + Clone + Debug + Hash;
-    pub trait Priority = Eq + PartialEq + Add<Output=Self> + Ord + PartialOrd + Display + Copy + Clone + Debug;
+    pub trait Priority = Num + Eq + PartialEq + Add<Output=Self> + Ord + PartialOrd + Display + Copy + Clone + Debug;
 }
 
 pub trait SearchQueue<T> {
@@ -335,6 +336,29 @@ where
     let mut open_list = ParentMapQueue::new();
     open_list.enqueue(start_value);
     search(open_list, add_successors).open_list.parent_map
+}
+
+pub fn heuristic_search<T, C, G, H, S>(start_value: T, at_goal: G, heuristic: H, get_successors: S) -> SearchResult<AStarQueue<C, T>> 
+where
+    T: SearchNode,
+    C: Priority,
+    G: Fn(&T) -> bool,
+    H: Fn(&T) -> C,
+    S: Fn(&T) -> Vec<T>
+{
+    let cost = AStarCost { cost_so_far: C::zero(), estimate_to_goal: heuristic(&start_value) };
+    let start_value = AStarNode::new(start_value, cost);
+    best_first_search(&start_value, |n, s| {
+        if at_goal(n.item()) {
+            ContinueSearch::No
+        } else {
+            for succ in get_successors(n.item()) {
+                let cost = AStarCost {cost_so_far: n.cost_so_far(), estimate_to_goal: heuristic(n.item())};
+                s.enqueue(&AStarNode::new(succ, cost));
+            }
+            ContinueSearch::Yes
+        }
+    })
 }
 
 pub fn best_first_search<T, S, C>(
