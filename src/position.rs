@@ -287,9 +287,18 @@ impl ManhattanDir {
     pub fn clockwise(&self) -> ManhattanDir {
         match self {
             ManhattanDir::N => ManhattanDir::E,
-            ManhattanDir::S => ManhattanDir::W,
             ManhattanDir::E => ManhattanDir::S,
+            ManhattanDir::S => ManhattanDir::W,
             ManhattanDir::W => ManhattanDir::N,
+        }
+    }
+
+    pub fn counterclockwise(&self) -> ManhattanDir {
+        match self {
+            ManhattanDir::N => ManhattanDir::W,
+            ManhattanDir::W => ManhattanDir::S,
+            ManhattanDir::S => ManhattanDir::E,
+            ManhattanDir::E => ManhattanDir::N,
         }
     }
 }

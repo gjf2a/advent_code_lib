@@ -523,6 +523,7 @@ mod tests {
         for d2 in all::<ManhattanDir>() {
             assert_eq!(d1, d2);
             d1 = d1.clockwise();
+            assert_eq!(d1.counterclockwise(), d2);
         }
         assert_eq!(d1, ManhattanDir::N);
     }
