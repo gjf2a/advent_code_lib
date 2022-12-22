@@ -2,15 +2,28 @@ use std::{
     cmp::{max, min},
     fmt::Display,
     iter::Sum,
-    ops::{Add, Index, Neg, Sub},
+    ops::{Add, Index, Neg, Sub, IndexMut},
     str::FromStr,
 };
 
 use bare_metal_modulo::NumType;
 
+use crate::ManhattanDir;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Point<N: NumType, const S: usize> {
     coords: [N; S],
+}
+
+impl Point<isize,2> {
+    pub fn manhattan_move(&mut self, dir: ManhattanDir) {
+        match dir {
+            ManhattanDir::N => self[1] -= 1,
+            ManhattanDir::E => self[0] += 1,
+            ManhattanDir::S => self[1] += 1,
+            ManhattanDir::W => self[0] -= 1,
+        }
+    }
 }
 
 impl<N: NumType, const S: usize> Point<N, S> {
@@ -100,6 +113,12 @@ impl<N: NumType, const S: usize> Index<usize> for Point<N, S> {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.coords[index]
+    }
+}
+
+impl<N: NumType, const S: usize> IndexMut<usize> for Point<N, S> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.coords[index]
     }
 }
 

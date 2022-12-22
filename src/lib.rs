@@ -841,4 +841,20 @@ mod tests {
         assert_eq!(-1, p.values().min().unwrap());
         assert_eq!(3, p.values().max().unwrap());
     }
+
+    #[test]
+    fn test_point_move() {
+        let mut p: Point<isize, 2> = "0, 0".parse().unwrap();
+        for (m, ex) in [
+            (ManhattanDir::N, "0, -1"),
+            (ManhattanDir::N, "0, -2"),
+            (ManhattanDir::E, "1, -2"),
+            (ManhattanDir::E, "2, -2"),
+            (ManhattanDir::S, "2, -1"),
+            (ManhattanDir::W, "1, -1"),
+        ] {
+            p.manhattan_move(m);
+            assert_eq!(p, ex.parse().unwrap());
+        }
+    }
 }
