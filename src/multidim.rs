@@ -8,7 +8,7 @@ use std::{
 
 use bare_metal_modulo::NumType;
 
-use crate::ManhattanDir;
+use crate::{ManhattanDir, Dir};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct Point<N: NumType, const S: usize> {
@@ -23,6 +23,19 @@ impl Point<isize,2> {
             ManhattanDir::S => self[1] += 1,
             ManhattanDir::W => self[0] -= 1,
         }
+    }
+
+    pub fn dir_moved(&self, dir: Dir) -> Self {
+        *self + Self::new(match dir {
+            Dir::N => [0, -1],
+            Dir::Ne => [1, -1],
+            Dir::E => [1, 0],
+            Dir::Se => [1, 1],
+            Dir::S => [0, 1],
+            Dir::Sw => [-1, 1],
+            Dir::W => [-1, 0],
+            Dir::Nw => [-1, -1],
+        })
     }
 }
 

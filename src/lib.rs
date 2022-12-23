@@ -858,4 +858,21 @@ mod tests {
             assert_eq!(p, ex.parse().unwrap());
         }
     }
+
+    #[test]
+    fn test_diagonal_move() {
+        let p: Point<isize, 2> = "0, 0".parse().unwrap();
+        for (d, ex) in [
+            (Dir::N,  [ 0, -1]),
+            (Dir::Nw, [-1, -1]),
+            (Dir::W,  [-1,  0]),
+            (Dir::Sw, [-1,  1]),
+            (Dir::S,  [ 0,  1]),
+            (Dir::Se, [ 1,  1]),
+            (Dir::E,  [ 1,  0]),
+            (Dir::Ne, [ 1, -1]),
+        ] {
+            assert_eq!(p.dir_moved(d), Point::<isize, 2>::new(ex));
+        }
+    }
 }
