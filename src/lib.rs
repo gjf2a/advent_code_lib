@@ -854,8 +854,10 @@ mod tests {
             (ManhattanDir::S, "2, -1"),
             (ManhattanDir::W, "1, -1"),
         ] {
+            let prev = p;
             p.manhattan_move(m);
             assert_eq!(p, ex.parse().unwrap());
+            assert_eq!(prev.manhattan_moved(m), p);
         }
     }
 

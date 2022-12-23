@@ -25,6 +25,12 @@ impl Point<isize,2> {
         }
     }
 
+    pub fn manhattan_moved(&self, dir: ManhattanDir) -> Self {
+        let mut result = *self;
+        result.manhattan_move(dir);
+        result
+    }
+
     pub fn dir_moved(&self, dir: Dir) -> Self {
         *self + Self::new(match dir {
             Dir::N => [0, -1],
