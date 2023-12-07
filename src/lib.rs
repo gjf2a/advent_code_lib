@@ -36,6 +36,7 @@ pub fn advent_main(
     }
 }
 
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Part {
     One, Two
 }
