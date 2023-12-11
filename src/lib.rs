@@ -728,6 +728,17 @@ mod tests {
     }
 
     #[test]
+    fn test_expanding_grid() {
+        let grid = GridDigitWorld::from_digit_file("tiny_grid.txt").unwrap();
+        let ex1 = grid.with_new_row(1, |p| ModNumC::new((p.row + p.col) as u8));
+        let tx1 = GridDigitWorld::from_digit_file("tiny_new_row.txt").unwrap();
+        assert_eq!(tx1, ex1);
+        let ex2 = ex1.with_new_column(1, |p| ModNumC::new((p.row + p.col) as u8));
+        let tx2 = GridDigitWorld::from_digit_file("tiny_new_col.txt").unwrap();
+        assert_eq!(tx2, ex2);
+    }
+
+    #[test]
     fn test_infinite_grid() {
         let mut grid: InfiniteGrid<u8> = InfiniteGrid::default();
         let values: HashMap<(isize, isize), u8> =
