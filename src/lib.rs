@@ -482,6 +482,8 @@ mod tests {
         assert_eq!(Position::from((12, 24)), p);
 
         assert_eq!(p - q, Position::from((8, 16)));
+
+        assert_eq!(p / 3, q);
     }
 
     #[test]

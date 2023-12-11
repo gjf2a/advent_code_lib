@@ -2,7 +2,7 @@ use crate::make_io_error;
 use enum_iterator::{all, Sequence};
 use std::collections::VecDeque;
 use std::fmt::Display;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Sub};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, Div};
 use std::str::FromStr;
 use std::{io, mem};
 
@@ -22,7 +22,7 @@ impl Add for Position {
     type Output = Position;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Position {
+        Self {
             col: self.col + rhs.col,
             row: self.row + rhs.row,
         }
@@ -33,7 +33,7 @@ impl Sub for Position {
     type Output = Position;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Position {
+        Self {
             col: self.col - rhs.col,
             row: self.row - rhs.row,
         }
@@ -44,11 +44,22 @@ impl Mul<isize> for Position {
     type Output = Position;
 
     fn mul(self, rhs: isize) -> Self::Output {
-        Position {
+        Self {
             col: self.col * rhs,
             row: self.row * rhs,
         }
     }
+}
+
+impl Div<isize> for Position {
+    type Output = Position;
+
+    fn div(self, rhs: isize) -> Self::Output {
+        Self {
+            col: self.col / rhs,
+            row: self.row / rhs
+        }
+    }    
 }
 
 impl AddAssign for Position {
@@ -69,7 +80,7 @@ impl Position {
     }
 
     pub fn from(pair: (isize, isize)) -> Self {
-        Position {
+        Self {
             col: pair.0,
             row: pair.1,
         }
@@ -89,7 +100,7 @@ impl Position {
 
     pub fn updated(&self, d: Dir) -> Self {
         let (nc, nr) = d.neighbor(self.col, self.row);
-        Position { col: nc, row: nr }
+        Self { col: nc, row: nr }
     }
 
     pub fn next_in_grid(&self, width: usize, height: usize) -> Option<Position> {
