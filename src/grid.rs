@@ -107,6 +107,10 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
         self.map.get(&p).copied()
     }
 
+    pub fn get(&self, col: usize, row: usize) -> Option<V> {
+        self.value(Position {row: row as isize, col: col as isize})
+    }
+
     pub fn modify<M: FnMut(&mut V)>(&mut self, p: Position, mut modifier: M) {
         self.map.get_mut(&p).map(|v| modifier(v));
     }
