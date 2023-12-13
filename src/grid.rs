@@ -2,7 +2,7 @@ use crate::{map_width_height, to_map, Position, RowMajorPositionIterator};
 use bare_metal_modulo::*;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
-    fmt::{Debug, Display},
+    fmt::{Debug, Display}, str::FromStr,
 };
 
 pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
@@ -40,6 +40,21 @@ impl GridDigitWorld {
 impl GridCharWorld {
     pub fn from_char_file(filename: &str) -> anyhow::Result<GridCharWorld> {
         Self::from_file(filename, |c| c)
+    }
+}
+
+impl FromStr for GridCharWorld {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut map = HashMap::new();
+        for (row, line) in s.lines().enumerate() {
+            for (col, value) in line.char_indices() {
+                map.insert(Position::from((col as isize, row as isize)), value);
+            }
+        }
+        let (width, height) = map_width_height(&map);
+        Ok(Self {map, width, height})
     }
 }
 
