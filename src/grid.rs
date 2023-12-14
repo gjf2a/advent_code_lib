@@ -77,32 +77,6 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
         self.height
     }
 
-    pub fn with_new_row<F: Fn(Position) -> V>(&self, row_num: isize, value: F) -> Self {
-        let mut result = Self {
-            width: self.width,
-            height: self.height + 1,
-            map: self.map.iter().map(|(p, v)| (if p.row < row_num {*p} else {Position {col: p.col, row: p.row + 1}}, *v)).collect()
-        };
-        for col in 0..result.width {
-            let k = Position {row: row_num, col: col as isize};
-            result.map.insert(k, value(k));
-        }
-        result
-    }
-
-    pub fn with_new_column<F: Fn(Position) -> V>(&self, col_num: isize, value: F) -> Self {
-        let mut result = Self {
-            width: self.width + 1,
-            height: self.height,
-            map: self.map.iter().map(|(p, v)| (if p.col < col_num {*p} else {Position {col: p.col + 1, row: p.row}}, *v)).collect()
-        };
-        for row in 0..result.height {
-            let k = Position {row: row as isize, col: col_num};
-            result.map.insert(k, value(k));
-        }
-        result
-    }
-
     pub fn value(&self, p: Position) -> Option<V> {
         self.map.get(&p).copied()
     }
@@ -113,6 +87,13 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
 
     pub fn modify<M: FnMut(&mut V)>(&mut self, p: Position, mut modifier: M) {
         self.map.get_mut(&p).map(|v| modifier(v));
+    }
+
+    pub fn swap(&mut self, p1: Position, p2: Position) {
+        let p1val = self.map.remove(&p1).unwrap();
+        let p2val = self.map.remove(&p2).unwrap();
+        self.map.insert(p1, p2val);
+        self.map.insert(p2, p1val);
     }
 
     pub fn position_iter(&self) -> RowMajorPositionIterator {
