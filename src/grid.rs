@@ -2,7 +2,8 @@ use crate::{map_width_height, to_map, Position, RowMajorPositionIterator};
 use bare_metal_modulo::*;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
-    fmt::{Debug, Display}, str::FromStr,
+    fmt::{Debug, Display},
+    str::FromStr,
 };
 
 pub type GridDigitWorld = GridWorld<ModNumC<u8, 10>>;
@@ -54,7 +55,7 @@ impl FromStr for GridCharWorld {
             }
         }
         let (width, height) = map_width_height(&map);
-        Ok(Self {map, width, height})
+        Ok(Self { map, width, height })
     }
 }
 
@@ -82,7 +83,10 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     }
 
     pub fn get(&self, col: usize, row: usize) -> Option<V> {
-        self.value(Position {row: row as isize, col: col as isize})
+        self.value(Position {
+            row: row as isize,
+            col: col as isize,
+        })
     }
 
     pub fn modify<M: FnMut(&mut V)>(&mut self, p: Position, mut modifier: M) {
@@ -90,10 +94,12 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     }
 
     pub fn swap(&mut self, p1: Position, p2: Position) {
-        let p1val = self.map.remove(&p1).unwrap();
-        let p2val = self.map.remove(&p2).unwrap();
-        self.map.insert(p1, p2val);
-        self.map.insert(p2, p1val);
+        if p1 != p2 && self.map.contains_key(&p1) && self.map.contains_key(&p2) {
+            let p1val = self.map.remove(&p1).unwrap();
+            let p2val = self.map.remove(&p2).unwrap();
+            self.map.insert(p1, p2val);
+            self.map.insert(p2, p1val);
+        }
     }
 
     pub fn position_iter(&self) -> RowMajorPositionIterator {

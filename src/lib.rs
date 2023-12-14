@@ -38,7 +38,8 @@ pub fn advent_main(
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Part {
-    One, Two
+    One,
+    Two,
 }
 
 impl FromStr for Part {
@@ -48,7 +49,7 @@ impl FromStr for Part {
         match s {
             "one" => Ok(Self::One),
             "two" => Ok(Self::Two),
-            _ => Err(anyhow::anyhow!("No match for Part"))
+            _ => Err(anyhow::anyhow!("No match for Part")),
         }
     }
 }
@@ -726,8 +727,8 @@ mod tests {
 
         assert_eq!(original, grid);
 
-        let p1 = Position {row: 2, col: 3};
-        let p2 = Position {row: 3, col: 4};
+        let p1 = Position { row: 2, col: 3 };
+        let p2 = Position { row: 3, col: 4 };
         grid.swap(p1, p2);
         assert_eq!(original.value(p1), grid.value(p2));
         assert_eq!(original.value(p2), grid.value(p1));
@@ -900,14 +901,14 @@ mod tests {
     fn test_diagonal_move() {
         let p: Point<isize, 2> = "0, 0".parse().unwrap();
         for (d, ex) in [
-            (Dir::N,  [ 0, -1]),
+            (Dir::N, [0, -1]),
             (Dir::Nw, [-1, -1]),
-            (Dir::W,  [-1,  0]),
-            (Dir::Sw, [-1,  1]),
-            (Dir::S,  [ 0,  1]),
-            (Dir::Se, [ 1,  1]),
-            (Dir::E,  [ 1,  0]),
-            (Dir::Ne, [ 1, -1]),
+            (Dir::W, [-1, 0]),
+            (Dir::Sw, [-1, 1]),
+            (Dir::S, [0, 1]),
+            (Dir::Se, [1, 1]),
+            (Dir::E, [1, 0]),
+            (Dir::Ne, [1, -1]),
         ] {
             assert_eq!(p.dir_moved(d), Point::<isize, 2>::new(ex));
         }

@@ -2,7 +2,7 @@ use crate::make_io_error;
 use enum_iterator::{all, Sequence};
 use std::collections::VecDeque;
 use std::fmt::Display;
-use std::ops::{Add, AddAssign, Mul, MulAssign, Sub, Div};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Sub};
 use std::str::FromStr;
 use std::{io, mem};
 
@@ -57,9 +57,9 @@ impl Div<isize> for Position {
     fn div(self, rhs: isize) -> Self::Output {
         Self {
             col: self.col / rhs,
-            row: self.row / rhs
+            row: self.row / rhs,
         }
-    }    
+    }
 }
 
 impl AddAssign for Position {
