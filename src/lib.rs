@@ -732,6 +732,18 @@ mod tests {
         grid.swap(p1, p2);
         assert_eq!(original.value(p1), grid.value(p2));
         assert_eq!(original.value(p2), grid.value(p1));
+
+        for ((row, col), outcome) in [
+            ((0, 0), true),
+            ((0, 1), true),
+            ((0, 8), true),
+            ((1, 9), true),
+            ((1, 8), false),
+            ((9, 1), true),
+            ((8, 1), false)
+            ] {
+            assert_eq!(grid.at_edge(Position {row, col}), outcome);
+        }
     }
 
     #[test]

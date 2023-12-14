@@ -66,6 +66,10 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
         Ok(Self { map, width, height })
     }
 
+    pub fn at_edge(&self, p: Position) -> bool {
+        p.col == 0 || p.row == 0 || p.col == self.width() as isize - 1 || p.row == self.height() as isize - 1
+    }
+
     pub fn in_bounds(&self, p: Position) -> bool {
         self.map.contains_key(&p)
     }
