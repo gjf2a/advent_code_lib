@@ -25,9 +25,9 @@ impl CharDisplay for char {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct GridWorld<V> {
-    map: HashMap<Position, V>,
+    map: BTreeMap<Position, V>,
     width: usize,
     height: usize,
 }
@@ -44,6 +44,10 @@ impl GridCharWorld {
     }
 }
 
+fn convert<V: Clone>(map: &HashMap<Position, V>) -> BTreeMap<Position, V> {
+    map.iter().map(|(k, v)| (*k, v.clone())).collect()
+}
+
 impl FromStr for GridCharWorld {
     type Err = anyhow::Error;
 
@@ -55,6 +59,7 @@ impl FromStr for GridCharWorld {
             }
         }
         let (width, height) = map_width_height(&map);
+        let map = convert(&map);
         Ok(Self { map, width, height })
     }
 }
@@ -63,6 +68,7 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
     pub fn from_file<F: Fn(char) -> V>(filename: &str, reader: F) -> anyhow::Result<Self> {
         let map = to_map(filename, reader)?;
         let (width, height) = map_width_height(&map);
+        let map = convert(&map);
         Ok(Self { map, width, height })
     }
 
