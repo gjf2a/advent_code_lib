@@ -266,7 +266,7 @@ pub trait DirType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Sequence)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Sequence, Hash)]
 pub enum ManhattanDir {
     N,
     E,
@@ -314,7 +314,7 @@ impl ManhattanDir {
     }
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Sequence)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Sequence, Hash)]
 pub enum Dir {
     N,
     Ne,
