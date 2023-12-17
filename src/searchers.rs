@@ -338,11 +338,12 @@ where
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn heuristic_search<T, P, C, G, H, S>(
+pub fn heuristic_search<T, P, C, G, H, A, S>(
     start_value: T,
     node_cost: P,
     at_goal: G,
     heuristic: H,
+    path_approved: Option<A>,
     get_successors: S,
 ) -> SearchResult<AStarQueue<C, T>>
 where
@@ -351,6 +352,7 @@ where
     P: Fn(&T) -> C,
     G: Fn(&T) -> bool,
     H: Fn(&T) -> C,
+    A: Fn(VecDeque<T>) -> bool,
     S: Fn(&T) -> Vec<T>,
 {
     let cost = AStarCost {
@@ -367,7 +369,10 @@ where
                     cost_so_far: node_cost(n.item()),
                     estimate_to_goal: heuristic(n.item()),
                 };
-                s.enqueue(&AStarNode::new(succ, cost));
+                
+                if path_approved.as_ref().map_or(true, |approve| approve(s.parents.path_back_from(&succ).unwrap())) {
+                    s.enqueue(&AStarNode::new(succ, cost));
+                }
             }
             ContinueSearch::Yes
         }
