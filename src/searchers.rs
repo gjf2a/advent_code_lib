@@ -400,16 +400,18 @@ where
         if at_goal(n.item()) {
             ContinueSearch::No
         } else {
+            if s.parents.path_back_from(&n.item()).map_or(true, |path| path_approved(path)) {
             for succ in get_successors(n.item()) {
                 let cost = AStarCost {
                     cost_so_far: node_cost(n.item()),
                     estimate_to_goal: heuristic(n.item()),
                 };
                 
-                if s.parents.path_back_from(&succ).map_or(true, |path| path_approved(path)) {
+                //if s.parents.path_back_from(&succ).map_or(true, |path| path_approved(path)) {
                     s.enqueue(&AStarNode::new(succ, cost));
-                }
+                //}
             }
+        }
             ContinueSearch::Yes
         }
     })
