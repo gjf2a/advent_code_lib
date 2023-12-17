@@ -406,7 +406,7 @@ where
                     estimate_to_goal: heuristic(n.item()),
                 };
                 
-                if path_approved(s.parents.path_back_from(&succ).unwrap()) {
+                if s.parents.path_back_from(&succ).map_or(true, |path| path_approved(path)) {
                     s.enqueue(&AStarNode::new(succ, cost));
                 }
             }
