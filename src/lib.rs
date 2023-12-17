@@ -740,9 +740,9 @@ mod tests {
             ((1, 9), true),
             ((1, 8), false),
             ((9, 1), true),
-            ((8, 1), false)
-            ] {
-            assert_eq!(grid.at_edge(Position {row, col}), outcome);
+            ((8, 1), false),
+        ] {
+            assert_eq!(grid.at_edge(Position { row, col }), outcome);
         }
     }
 
