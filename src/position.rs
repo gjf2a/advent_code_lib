@@ -93,7 +93,7 @@ impl Position {
     }
 
     pub fn manhattan_dir_to(&self, other: Self) -> Option<ManhattanDir> {
-        let offset = *self - other;
+        let offset = other - *self;
         all::<ManhattanDir>().find(|dir| (offset.col, offset.row) == dir.offset())
     }
 
