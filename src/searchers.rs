@@ -338,12 +338,48 @@ where
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn heuristic_search<T, P, C, G, H, A, S>(
+pub fn heuristic_search<T, P, C, G, H, S>(
     start_value: T,
     node_cost: P,
     at_goal: G,
     heuristic: H,
-    path_approved: Option<A>,
+    get_successors: S,
+) -> SearchResult<AStarQueue<C, T>>
+where
+    T: SearchNode,
+    C: Priority,
+    P: Fn(&T) -> C,
+    G: Fn(&T) -> bool,
+    H: Fn(&T) -> C,
+    S: Fn(&T) -> Vec<T>,
+{
+    let cost = AStarCost {
+        cost_so_far: C::zero(),
+        estimate_to_goal: heuristic(&start_value),
+    };
+    let start_value = AStarNode::new(start_value, cost);
+    best_first_search(&start_value, |n, s| {
+        if at_goal(n.item()) {
+            ContinueSearch::No
+        } else {
+            for succ in get_successors(n.item()) {
+                let cost = AStarCost {
+                    cost_so_far: node_cost(n.item()),
+                    estimate_to_goal: heuristic(n.item()),
+                };
+                s.enqueue(&AStarNode::new(succ, cost));
+            }
+            ContinueSearch::Yes
+        }
+    })
+}
+
+pub fn heuristic_search_path_check<T, P, C, G, H, A, S>(
+    start_value: T,
+    node_cost: P,
+    at_goal: G,
+    heuristic: H,
+    path_approved: A,
     get_successors: S,
 ) -> SearchResult<AStarQueue<C, T>>
 where
@@ -370,7 +406,7 @@ where
                     estimate_to_goal: heuristic(n.item()),
                 };
                 
-                if path_approved.as_ref().map_or(true, |approve| approve(s.parents.path_back_from(&succ).unwrap())) {
+                if path_approved(s.parents.path_back_from(&succ).unwrap()) {
                     s.enqueue(&AStarNode::new(succ, cost));
                 }
             }
