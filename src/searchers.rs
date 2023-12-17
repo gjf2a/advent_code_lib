@@ -338,8 +338,9 @@ where
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn heuristic_search<T, C, G, H, S>(
+pub fn heuristic_search<T, P, C, G, H, S>(
     start_value: T,
+    node_cost: P,
     at_goal: G,
     heuristic: H,
     get_successors: S,
@@ -347,6 +348,7 @@ pub fn heuristic_search<T, C, G, H, S>(
 where
     T: SearchNode,
     C: Priority,
+    P: Fn(&T) -> C,
     G: Fn(&T) -> bool,
     H: Fn(&T) -> C,
     S: Fn(&T) -> Vec<T>,
@@ -363,7 +365,7 @@ where
             println!("cost so far: {}", n.cost_so_far());
             for succ in get_successors(n.item()) {
                 let cost = AStarCost {
-                    cost_so_far: n.cost_so_far(),
+                    cost_so_far: node_cost(n.item()),
                     estimate_to_goal: heuristic(n.item()),
                 };
                 s.enqueue(&AStarNode::new(succ, cost));
