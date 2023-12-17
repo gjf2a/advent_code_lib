@@ -360,6 +360,7 @@ where
         if at_goal(n.item()) {
             ContinueSearch::No
         } else {
+            println!("cost so far: {}", n.cost_so_far());
             for succ in get_successors(n.item()) {
                 let cost = AStarCost {
                     cost_so_far: n.cost_so_far(),
