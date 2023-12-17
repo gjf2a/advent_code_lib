@@ -92,6 +92,11 @@ impl Position {
         Self { col, row }
     }
 
+    pub fn manhattan_dir_to(&self, other: Self) -> Option<ManhattanDir> {
+        let offset = *self - other;
+        all::<ManhattanDir>().find(|dir| (offset.col, offset.row) == dir.offset())
+    }
+
     pub fn update(&mut self, d: Dir) {
         let (nc, nr) = d.neighbor(self.col, self.row);
         self.col = nc;
