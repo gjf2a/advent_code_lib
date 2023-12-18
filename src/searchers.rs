@@ -402,7 +402,7 @@ where
             .map_or(true, |path| path_approved(path))
         {
             if at_goal(n.item()) {
-                ContinueSearch::No
+                return ContinueSearch::No;
             } else {
                 for succ in get_successors(n.item()) {
                     let cost = AStarCost {
@@ -413,10 +413,8 @@ where
                     s.enqueue(&AStarNode::new(succ, cost));
                 }
             }
-            ContinueSearch::Yes
-        } else {
-            ContinueSearch::Yes
-        }
+        } 
+        ContinueSearch::Yes
     })
 }
 
