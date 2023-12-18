@@ -397,23 +397,22 @@ where
     };
     let start_value = AStarNode::new(start_value, cost);
     best_first_search(&start_value, |n, s| {
-        if s.parents
-            .path_back_from(&n.item())
-            .map_or(true, |path| path_approved(path))
-        {
-            if at_goal(n.item()) {
-                return ContinueSearch::No;
-            } else {
-                for succ in get_successors(n.item()) {
-                    let cost = AStarCost {
-                        cost_so_far: node_cost(n.item()),
-                        estimate_to_goal: heuristic(n.item()),
-                    };
-
+        if at_goal(n.item()) {
+            return ContinueSearch::No;
+        } else {
+            let path_back_from = s.parents.path_back_from(&n.item()).unwrap();
+            for succ in get_successors(n.item()) {
+                let cost = AStarCost {
+                    cost_so_far: node_cost(n.item()),
+                    estimate_to_goal: heuristic(n.item()),
+                };
+                let mut succ_path_back = path_back_from.clone();
+                succ_path_back.push_back(succ.clone());
+                if path_approved(succ_path_back) {
                     s.enqueue(&AStarNode::new(succ, cost));
                 }
             }
-        } 
+        }
         ContinueSearch::Yes
     })
 }
