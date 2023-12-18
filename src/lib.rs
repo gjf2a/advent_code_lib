@@ -559,6 +559,15 @@ mod tests {
     }
 
     #[test]
+    fn test_manhattan_dir() {
+        let p = Position::new();
+        for d in all::<ManhattanDir>() {
+            let n = d.next_position(p);
+            assert_eq!(d, p.manhattan_dir_to(n).unwrap());
+        }
+    }
+
+    #[test]
     fn test_manhattan_neighbors() {
         let p = Position::new();
         let mut seen = HashSet::new();
