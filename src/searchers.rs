@@ -374,6 +374,8 @@ where
     })
 }
 
+/// WARNING: USE AT OWN RISK!!!
+/// This seems to ignore some usable solutions, but further study is needed.
 pub fn heuristic_search_path_check<T, P, C, G, H, A, S>(
     start_value: T,
     node_cost: P,
