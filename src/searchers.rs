@@ -340,7 +340,6 @@ where
 
 pub fn heuristic_search<T, P, C, G, H, S>(
     start_value: T,
-    node_cost: P,
     at_goal: G,
     heuristic: H,
     get_successors: S,
@@ -348,10 +347,9 @@ pub fn heuristic_search<T, P, C, G, H, S>(
 where
     T: SearchNode,
     C: Priority,
-    P: Fn(&T) -> C,
     G: Fn(&T) -> bool,
     H: Fn(&T) -> C,
-    S: Fn(&T, &ParentMap<T>) -> Vec<T>,
+    S: Fn(&T, C, &ParentMap<T>) -> Vec<(T, C)>,
 {
     let cost = AStarCost {
         cost_so_far: C::zero(),
@@ -362,9 +360,9 @@ where
         if at_goal(n.item()) {
             ContinueSearch::No
         } else {
-            for succ in get_successors(n.item(), &s.parents) {
+            for (succ, cost) in get_successors(n.item(), n.cost_so_far(), &s.parents) {
                 let cost = AStarCost {
-                    cost_so_far: node_cost(n.item()),
+                    cost_so_far: n.cost_so_far() + cost,
                     estimate_to_goal: heuristic(n.item()),
                 };
                 s.enqueue(&AStarNode::new(succ, cost));
