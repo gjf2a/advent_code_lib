@@ -338,7 +338,7 @@ where
     search(open_list, add_successors).open_list.parent_map
 }
 
-pub fn heuristic_search<T, P, C, G, H, S>(
+pub fn heuristic_search<T, C, G, H, S>(
     start_value: T,
     at_goal: G,
     heuristic: H,
