@@ -351,7 +351,7 @@ where
     P: Fn(&T) -> C,
     G: Fn(&T) -> bool,
     H: Fn(&T) -> C,
-    S: Fn(&T) -> Vec<T>,
+    S: Fn(&T, &ParentMap<T>) -> Vec<T>,
 {
     let cost = AStarCost {
         cost_so_far: C::zero(),
@@ -362,7 +362,7 @@ where
         if at_goal(n.item()) {
             ContinueSearch::No
         } else {
-            for succ in get_successors(n.item()) {
+            for succ in get_successors(n.item(), &s.parents) {
                 let cost = AStarCost {
                     cost_so_far: node_cost(n.item()),
                     estimate_to_goal: heuristic(n.item()),
@@ -371,51 +371,6 @@ where
             }
             ContinueSearch::Yes
         }
-    })
-}
-
-/// WARNING: USE AT OWN RISK!!!
-/// This seems to ignore some usable solutions, but further study is needed.
-pub fn heuristic_search_path_check<T, P, C, G, H, A, S>(
-    start_value: T,
-    node_cost: P,
-    at_goal: G,
-    heuristic: H,
-    path_approved: A,
-    get_successors: S,
-) -> SearchResult<AStarQueue<C, T>>
-where
-    T: SearchNode,
-    C: Priority,
-    P: Fn(&T) -> C,
-    G: Fn(&T) -> bool,
-    H: Fn(&T) -> C,
-    A: Fn(VecDeque<T>) -> bool,
-    S: Fn(&T) -> Vec<T>,
-{
-    let cost = AStarCost {
-        cost_so_far: C::zero(),
-        estimate_to_goal: heuristic(&start_value),
-    };
-    let start_value = AStarNode::new(start_value, cost);
-    best_first_search(&start_value, |n, s| {
-        if at_goal(n.item()) {
-            return ContinueSearch::No;
-        } else {
-            let path_back_from = s.parents.path_back_from(&n.item()).unwrap();
-            for succ in get_successors(n.item()) {
-                let cost = AStarCost {
-                    cost_so_far: node_cost(n.item()),
-                    estimate_to_goal: heuristic(n.item()),
-                };
-                let mut succ_path_back = path_back_from.clone();
-                succ_path_back.push_back(succ.clone());
-                if path_approved(succ_path_back) {
-                    s.enqueue(&AStarNode::new(succ, cost));
-                }
-            }
-        }
-        ContinueSearch::Yes
     })
 }
 
