@@ -349,7 +349,7 @@ where
     C: Priority,
     G: Fn(&T) -> bool,
     H: Fn(&T) -> C,
-    S: Fn(&T, C, &ParentMap<T>) -> Vec<(T, C)>,
+    S: Fn(&T, &ParentMap<T>) -> Vec<(T, C)>,
 {
     let cost = AStarCost {
         cost_so_far: C::zero(),
@@ -360,7 +360,7 @@ where
         if at_goal(n.item()) {
             ContinueSearch::No
         } else {
-            for (succ, cost) in get_successors(n.item(), n.cost_so_far(), &s.parents) {
+            for (succ, cost) in get_successors(n.item(), &s.parents) {
                 let cost = AStarCost {
                     cost_so_far: n.cost_so_far() + cost,
                     estimate_to_goal: heuristic(n.item()),

@@ -11,7 +11,7 @@ use bare_metal_modulo::NumType;
 use crate::{Dir, ManhattanDir};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
-pub struct Point<N: NumType, const S: usize> {
+pub struct Point<N: NumType + Default, const S: usize> {
     coords: [N; S],
 }
 
@@ -46,7 +46,7 @@ impl Point<isize, 2> {
     }
 }
 
-impl<N: NumType, const S: usize> Point<N, S> {
+impl<N: NumType + Default, const S: usize> Point<N, S> {
     pub fn new(coords: [N; S]) -> Self {
         Self { coords }
     }
@@ -106,7 +106,7 @@ impl<N: NumType, const S: usize> Point<N, S> {
     }
 }
 
-impl<N: NumType + num::traits::Signed + Sum<N>, const S: usize> Point<N, S> {
+impl<N: NumType + num::traits::Signed + Sum<N> + Default, const S: usize> Point<N, S> {
     pub fn manhattan_distance(&self, other: &Point<N, S>) -> N {
         (0..S).map(|i| (self[i] - other[i]).abs()).sum()
     }
@@ -128,7 +128,7 @@ impl<N: NumType + num::traits::Signed + Sum<N>, const S: usize> Point<N, S> {
     }
 }
 
-impl<N: NumType, const S: usize> Index<usize> for Point<N, S> {
+impl<N: NumType + Default, const S: usize> Index<usize> for Point<N, S> {
     type Output = N;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -136,13 +136,13 @@ impl<N: NumType, const S: usize> Index<usize> for Point<N, S> {
     }
 }
 
-impl<N: NumType, const S: usize> IndexMut<usize> for Point<N, S> {
+impl<N: NumType + Default, const S: usize> IndexMut<usize> for Point<N, S> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.coords[index]
     }
 }
 
-impl<N: NumType, const S: usize> Default for Point<N, S> {
+impl<N: NumType + Default, const S: usize> Default for Point<N, S> {
     fn default() -> Self {
         Self {
             coords: [N::default(); S],
@@ -150,7 +150,7 @@ impl<N: NumType, const S: usize> Default for Point<N, S> {
     }
 }
 
-impl<N: NumType, const S: usize> Add for Point<N, S> {
+impl<N: NumType + Default, const S: usize> Add for Point<N, S> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -162,7 +162,7 @@ impl<N: NumType, const S: usize> Add for Point<N, S> {
     }
 }
 
-impl<N: NumType + Neg<Output = N>, const S: usize> Neg for Point<N, S> {
+impl<N: NumType + Default + Neg<Output = N>, const S: usize> Neg for Point<N, S> {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -174,7 +174,7 @@ impl<N: NumType + Neg<Output = N>, const S: usize> Neg for Point<N, S> {
     }
 }
 
-impl<N: NumType + Neg<Output = N>, const S: usize> Sub for Point<N, S> {
+impl<N: NumType + Default + Neg<Output = N>, const S: usize> Sub for Point<N, S> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -182,7 +182,7 @@ impl<N: NumType + Neg<Output = N>, const S: usize> Sub for Point<N, S> {
     }
 }
 
-impl<N: NumType, const S: usize> Display for Point<N, S> {
+impl<N: NumType + Default, const S: usize> Display for Point<N, S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "(")?;
         for (i, c) in self.coords.iter().enumerate() {
@@ -195,7 +195,7 @@ impl<N: NumType, const S: usize> Display for Point<N, S> {
     }
 }
 
-impl<N: NumType + FromStr, const S: usize> FromStr for Point<N, S>
+impl<N: NumType + Default + FromStr, const S: usize> FromStr for Point<N, S>
 where
     <N as FromStr>::Err: 'static + Sync + Send + std::error::Error,
 {
