@@ -54,13 +54,13 @@ impl FromStr for Part {
     }
 }
 
-pub fn chooser_main(code: fn(&str, Part) -> anyhow::Result<()>) -> anyhow::Result<()> {
+pub fn chooser_main(code: fn(&str, Part, &[String]) -> anyhow::Result<()>) -> anyhow::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
-        println!("Usage: {} filename (one|two)", args[0]);
+        println!("Usage: {} filename (one|two) [options]", args[0]);
         Ok(())
     } else {
-        code(args[1].as_str(), args[2].parse().unwrap())
+        code(args[1].as_str(), args[2].parse().unwrap(), &args[3..])
     }
 }
 
