@@ -756,6 +756,20 @@ mod tests {
     }
 
     #[test]
+    fn test_ring() {
+        let grid = GridDigitWorld::from_digit_file("tiny_grid.txt").unwrap();
+        assert_eq!(grid.width(), 3);
+        assert_eq!(grid.height(), 3);
+        let expected = ["(0, 0)", "(1, 0)", "(2, 0)", "(2, 1)", "(2, 2)", "(1, 2)", "(0, 2)", "(0, 1)"];
+        for (expected, actual) in expected.iter().zip(grid.ring_iter()) {
+            let expected = expected.parse::<Position>().unwrap();
+            assert_eq!(expected, actual);
+        }
+
+        assert_eq!(8, grid.ring_iter().count());
+    }
+
+    #[test]
     fn test_infinite_grid() {
         let mut grid: InfiniteGrid<u8> = InfiniteGrid::default();
         let values: HashMap<(isize, isize), u8> =

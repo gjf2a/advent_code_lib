@@ -1,4 +1,4 @@
-use crate::{map_width_height, to_map, Position, RowMajorPositionIterator};
+use crate::{map_width_height, to_map, Position, RowMajorPositionIterator, RingIterator};
 use bare_metal_modulo::*;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -125,6 +125,10 @@ impl<V: Copy + Clone + Eq + PartialEq> GridWorld<V> {
 
     pub fn position_value_iter_mut(&mut self) -> impl Iterator<Item = (&Position, &mut V)> {
         self.map.iter_mut()
+    }
+
+    pub fn ring_iter(&self) -> RingIterator {
+        RingIterator::new(self.map.keys().min().copied().unwrap(), self.width as isize, self.height as isize)
     }
 
     pub fn positions_for(&self, item: V) -> BTreeSet<Position> {

@@ -201,6 +201,50 @@ impl Iterator for RowMajorPositionIterator {
     }
 }
 
+pub struct RingIterator {
+    current: Position,
+    start: Position,
+    end: Position,
+    direction: ManhattanDir,
+    done: bool,
+}
+
+impl RingIterator {
+    pub fn new(start: Position, width: isize, height: isize) -> Self {
+        Self {
+            current: start,
+            start: start,
+            end: Position {row: start.row + height - 1, col: start.col + width - 1},
+            direction: ManhattanDir::E,
+            done: false
+        }
+    }
+
+    fn in_bounds(&self, p: Position) -> bool {
+        self.start.row <= p.row && p.row <= self.end.row && self.start.col <= p.col && p.col <= self.end.col
+    }
+}
+
+impl Iterator for RingIterator {
+    type Item = Position;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            None
+        } else {
+            let result = self.current;
+            let mut candidate = self.direction.next_position(self.current);
+            if !self.in_bounds(candidate) {
+                self.direction = self.direction.clockwise();
+                candidate = self.direction.next_position(self.current);
+            }
+            self.done = candidate == self.start;
+            self.current = candidate;
+            Some(result)
+        }
+    }
+}
+
 pub struct OffsetRowMajorPositionIterator {
     min_col: isize,
     max_col: isize,
