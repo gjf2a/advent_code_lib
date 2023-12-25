@@ -59,9 +59,10 @@ pub fn chooser_main(code: fn(&str, Part, &[String]) -> anyhow::Result<()>) -> an
     if args.len() < 2 {
         println!("Usage: {} filename [one|two] [options]", args[0]);
         Ok(())
+    } else if args.len() == 2 {
+        code(args[1].as_str(), Part::One, &[])
     } else {
-        let part = if args.len() == 2 {Part::One} else {args[2].parse().unwrap()};
-        code(args[1].as_str(), part, &args[3..])
+        code(args[1].as_str(), args[2].parse().unwrap(), &args[3..])
     }
 }
 
