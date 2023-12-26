@@ -2,7 +2,7 @@ use std::{
     cmp::{max, min},
     fmt::Display,
     iter::Sum,
-    ops::{Add, Index, IndexMut, Neg, Sub},
+    ops::{Add, Index, IndexMut, Neg, Sub, Mul},
     str::FromStr,
 };
 
@@ -179,6 +179,18 @@ impl<N: NumType + Default + Neg<Output = N>, const S: usize> Sub for Point<N, S>
 
     fn sub(self, rhs: Self) -> Self::Output {
         self + -rhs
+    }
+}
+
+impl<N: NumType + Default, const S: usize> Mul<N> for Point<N, S> {
+    type Output = Point<N, S>;
+
+    fn mul(self, rhs: N) -> Self::Output {
+        let mut result = self;
+        for i in 0..S {
+            result[i] *= rhs;
+        }
+        result
     }
 }
 

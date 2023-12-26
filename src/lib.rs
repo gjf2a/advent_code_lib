@@ -880,6 +880,8 @@ mod tests {
         assert_eq!(add, Point::new([5, 7, 9]));
         let sub = p1 - p2;
         assert_eq!(sub, Point::new([-3, -3, -3]));
+        let mul = p1 * -4;
+        assert_eq!(mul, Point::new([-4, -8, -12]));
     }
 
     #[test]
