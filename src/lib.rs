@@ -336,6 +336,8 @@ impl<'a, T: Clone> Iterator for SingleListIterator<'a, T> {
     }
 }
 
+
+
 pub fn combinations_of<F: FnMut(&[usize; O]), const O: usize>(inner: usize, func: &mut F) {
     let values = [0; O];
     combo_help(O - 1, inner, &values, func);
@@ -632,6 +634,7 @@ mod tests {
         ] {
             graph.connect2(a, b);
         }
+        assert!(graph.all_edges_symmetric());
         let keys = graph.keys().collect::<Vec<_>>();
         assert_eq!(keys, vec!["A", "b", "c", "d", "end", "start"]);
         let parent_map = breadth_first_search(&"start".to_string(), |node, q| {
@@ -650,6 +653,26 @@ mod tests {
         let path = parent_map.path_back_from(&"end".to_string()).unwrap();
         let path_str = format!("{:?}", path);
         assert_eq!(path_str, r#"["start", "A", "end"]"#);
+    }
+
+    #[test]
+    fn graph_test_2() {
+        let mut graph = AdjacencySets::new();
+        for (a, b) in [
+            ("start", "A"),
+            ("start", "b"),
+            ("A", "c"),
+            ("A", "b"),
+            ("b", "d"),
+            ("d", "c"),
+            ("c", "d"),
+            ("A", "end"),
+            ("b", "end"),
+        ] {
+            graph.connect(a, b);
+        }
+        assert!(!graph.all_edges_symmetric());
+        println!("{}", graph.dot_version());
     }
 
     #[test]

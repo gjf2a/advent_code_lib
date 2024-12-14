@@ -446,6 +446,30 @@ impl AdjacencySets {
         }
     }
 
+    pub fn all_edges_symmetric(&self) -> bool {
+        for (key, targets) in self.graph.iter() {
+            for target in targets.iter() {
+                match self.graph.get(target.as_str()) {
+                    None => return false,
+                    Some(edges) => if !edges.contains(key.as_str()) {return false;}
+                }
+            }
+        }
+        true
+    }
+
+    pub fn dot_version(&self) -> String {
+        let mut result = String::new();
+        result.push_str("digraph G {\n");
+        for (key, targets) in self.graph.iter() {
+            for target in targets.iter() {
+                result.push_str(format!("\t{key} -> {target}\n").as_str());
+            }
+        }
+        result.push_str("}\n");
+        result
+    }
+
     pub fn keys(&self) -> impl Iterator<Item = &str> {
         self.graph.keys().map(|s| s.as_str())
     }
